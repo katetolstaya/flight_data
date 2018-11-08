@@ -159,14 +159,22 @@ def get_flights(flights, params):
     for i, k in enumerate(sorted(flights.keys())):
         flight = flights[k]
 
+        if np.min(np.abs(flight.latitude)) == 0.0 or (flight.departure != airport and flight.arrival != airport):
+            continue
+
+
         # time within range
         in_range = np.array([timestamp(t) < params.end_t and timestamp(t) > params.start_t for t in flight.time])
+        time_delta = datetime.timedelta(0,params.time_delta)
+        if flight.departure == airport:
+            in_range = np.logical_and(in_range, np.array([t < flight.time[0] + time_delta for t in flight.time]))
+        elif flight.arrival == airport:
+            in_range = np.logical_and(in_range, np.array([t > flight.time[-1] - time_delta for t in flight.time]))
 
         # alt within range
         in_range = np.logical_and(in_range, np.array([af < params.alt_lim for af in flight.altitude]))
 
-        if np.min(np.abs(flight.latitude)) == 0.0 or (flight.departure != airport and flight.departure != airport):
-            continue
+
         if min_dist_to_airport(params.start_t, params.end_t, flight, lat0, lon0, alt0) > params.dist_lim:
             continue # far from airport
         elif np.sum(in_range) < 3:  # fewer than 3 points in path
@@ -177,3 +185,14 @@ def get_flights(flights, params):
             flights_arr = np.vstack([flights_arr, flight_summary.get_row()])
 
     return flights_arr, flight_summaries
+
+
+def get_min_max(flight_summaries):
+    xyzbea_min = np.Inf * np.ones((1,4))
+    xyzbea_max = -1.0 * np.Inf * np.ones((1,4))
+    # get range of xyzbea and time
+    for flight in flight_summaries:
+        xyzbea_max = np.maximum(xyzbea_max, np.amax(flight.loc_xyzbea, axis=0))
+        xyzbea_min = np.minimum(xyzbea_min, np.amin(flight.loc_xyzbea, axis=0))
+
+    return xyzbea_min, xyzbea_max

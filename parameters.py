@@ -11,18 +11,20 @@ class Parameters:
         self.fname = 'flights20160112'
         self.airport = "KSEA"
         self.center_t = 32000.0 #25000.0 + 4000.0 #1452748000.0 + 9000.0  # + 300.0
-        self.range_t = 500.0 #200.0 #500.0
+        self.range_t = 100000 #500.0 #200.0 #500.0
 
-        self.alt_lim =  25000.0
+        self.alt_lim =  2500.0
         self.dist_lim = 50000.0 # 100000.0
 
         self.min_time = 0
         self.start_t = 0
         self.end_t = 0
 
+        self.time_delta = 1000
+
         self.time_limit = 2.0
 
-        self.scale = 10.0
+        self.scale = 1000.0
         # planner params
         self.turning_radius = 3000.0 / self.scale  #3000.0 #50.0 #100.0
         self.rise_rate = 1000.0 / self.scale #50.0

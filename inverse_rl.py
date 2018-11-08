@@ -16,16 +16,21 @@ from objective import Objective
 def main():
 
     params = Parameters()
-    flights = pickle.load(open('data/' + params.fname + '.pkl', 'rb'))
+    fnames = ['flights20160111','flights20160112','flights20160113']
+    flight_summaries = []
 
-    _, flight_summaries = get_flights(flights, params)  # read in flight data: id, start time, starting X,Y,Z,yaw, ending X,Y,Z,yaw
+    for fname in fnames:
+        flights = pickle.load(open('data/' + fname+ '.pkl', 'rb'))
+        _, summaries = get_flights(flights, params)  # read in flight data: id, start time, starting X,Y,Z,yaw, ending X,Y,Z,yaw
+        flight_summaries.extend(summaries)
     
     xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
 
-    resolution = (xyzbea_max - xyzbea_min)/5.0
+    resolution = (xyzbea_max - xyzbea_min)/20.0
 
-    #resolution[0,3] = resolution[0,3] * 5
+    resolution[0,3] = resolution[0,3] * 5
 
+    # set grid to number of visits by all trajectories
     grid = Objective.Grid(xyzbea_min, xyzbea_max, resolution)
 
     for flight in flight_summaries:
@@ -34,6 +39,8 @@ def main():
             #print(val)
             grid.set(flight.loc_xyzbea[i, :], val+1)
 
+
+
     objective = Objective(grid)
 
     for flight in flight_summaries:
@@ -41,7 +48,7 @@ def main():
         path = np.concatenate((xyzb, flight.time.reshape((-1,1))), axis=1)
 
         print('............................')
-        print(flight.time[-1] - flight.time[0])
+        #print(flight.time[-1] - flight.time[0])
         print(objective.integrate_path_cost(path))
         plot_path(path)
 
@@ -51,9 +58,9 @@ def main():
 
         node = astar(start, goal, objective)
         path = reconstruct_path(node)
-        print(path[-1,4] - path[0,4])
-        plot_path(path)
+        #print(path[-1,4] - path[0,4])
         print(objective.integrate_path_cost(path))
+        plot_path(path)
 
 if __name__ == "__main__":
     main()

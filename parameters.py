@@ -11,7 +11,7 @@ class Parameters:
         self.fname = 'flights20160112'
         self.airport = "KSEA"
         self.center_t = 32000.0 #25000.0 + 4000.0 #1452748000.0 + 9000.0  # + 300.0
-        self.range_t = 100000 #500.0 #200.0 #500.0
+        self.range_t = 1000000 #500.0 #200.0 #500.0
 
         self.alt_lim =  2500.0
         self.dist_lim = 50000.0 # 100000.0

@@ -1,3 +1,7 @@
+import sys
+sys.path.insert(0, "../dubins_planning")
+import astar
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -50,7 +54,7 @@ def main():
         # alt within range
         in_range = np.logical_and(in_range, np.array([af < params.alt_lim for af in flight.altitude]))
 
-        if (flight.departure != airport and flight.departure != airport): #np.min(np.abs(flight.latitude)) == 0.0 or
+        if (flight.departure != airport and flight.arrival != airport): #np.min(np.abs(flight.latitude)) == 0.0 or
             continue
         if min_dist_to_airport(params.start_t, params.end_t, flight, lat0, lon0, alt0) > params.dist_lim:
             continue  # far from airport

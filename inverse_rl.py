@@ -4,6 +4,7 @@ sys.path.insert(0, "../dubins_planning")
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+import random
 
 from process import get_flights, get_colors, get_min_max
 from parameters import Parameters
@@ -42,6 +43,7 @@ def main():
 
 
     objective = Objective(grid)
+    random.shuffle(flight_summaries)
 
     for flight in flight_summaries:
         xyzb = flight.loc_xyzbea

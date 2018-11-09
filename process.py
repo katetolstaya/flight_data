@@ -159,7 +159,7 @@ def get_flights(flights, params):
     for i, k in enumerate(sorted(flights.keys())):
         flight = flights[k]
 
-        if np.min(np.abs(flight.latitude)) == 0.0 or (flight.departure != airport and flight.arrival != airport):
+        if np.min(np.abs(flight.latitude)) == 0.0 or (flight.arrival != airport): # and flight.arrival != airport):
             continue
 
 

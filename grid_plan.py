@@ -28,7 +28,7 @@ def main():
 
 
     if True:
-        obj = pickle.load(open('objective.pkl', 'rb'))
+        obj = pickle.load(open('objective2.pkl', 'rb'))
     else:
         xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
 

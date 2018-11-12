@@ -6,9 +6,8 @@ import matplotlib.pyplot as plt
 import pickle
 import random
 
-from process import get_flights, get_colors, get_min_max
 from parameters import Parameters
-from process import get_min_time, timestamp, min_dist_to_airport
+from process import get_min_time, timestamp, min_dist_to_airport, get_flights, get_min_max
 
 from dubins_node import Node
 from astar import astar, reconstruct_path, plot_path
@@ -84,7 +83,7 @@ def main():
                 ind = ind + 1
 
                 if ind % 10 == 0 :
-                    pickle.dump(objective, open('objective2.pkl','wb') )
+                    pickle.dump(objective, open('model/objective.pkl','wb') )
 
 if __name__ == "__main__":
     main()

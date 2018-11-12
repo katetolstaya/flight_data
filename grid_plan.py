@@ -6,9 +6,8 @@ import matplotlib.pyplot as plt
 import pickle
 import random
 
-from process import get_flights, get_colors, get_min_max
 from parameters import Parameters
-from process import get_min_time, timestamp, min_dist_to_airport
+from process import get_min_time, timestamp, min_dist_to_airport, get_flights, get_min_max
 
 from dubins_node import Node
 from astar import astar, reconstruct_path, plot_path
@@ -28,7 +27,7 @@ def main():
 
 
     if True:
-        obj = pickle.load(open('objective2.pkl', 'rb'))
+        obj = pickle.load(open('model/objective2.pkl', 'rb'))
     else:
         xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
 

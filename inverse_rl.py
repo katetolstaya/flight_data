@@ -41,7 +41,7 @@ def main():
     #         grid.set(flight.loc_xyzbea[i, :], val-1.0)
 
     n_iters = 10
-    astar_timeout = 30
+    astar_timeout = 30.0
 
     objective = Objective(grid)
     #random.seed(0)
@@ -87,7 +87,7 @@ def main():
 
                 ind = ind + 1
 
-                if ind % 10 == 0 :
+                if ind % 50 == 0 :
                     pickle.dump(objective, open('model/objective.pkl','wb') )
 
 if __name__ == "__main__":

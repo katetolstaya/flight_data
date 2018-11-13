@@ -65,7 +65,7 @@ def main():
         # start = Node(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3], 0)
         # goal = Node(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
 
-        node = astar(start, goal, obj)
+        node = astar(start, goal, obj, 300.0)
 
         if node is not None:
             path2 = reconstruct_path(node)

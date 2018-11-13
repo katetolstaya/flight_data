@@ -28,7 +28,7 @@ def main():
     
     xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
 
-    resolution = (xyzbea_max - xyzbea_min)/20.0
+    resolution = (xyzbea_max - xyzbea_min)/50.0
 
     resolution[0,3] = resolution[0,3] 
 

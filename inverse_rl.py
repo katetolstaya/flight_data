@@ -30,7 +30,7 @@ def main():
 
     resolution = (xyzbea_max - xyzbea_min)/20.0
 
-    resolution[0,3] = resolution[0,3] * 4.0
+    resolution[0,3] = resolution[0,3] 
 
     # set grid to number of visits by all trajectories
     grid = Grid(xyzbea_min, xyzbea_max, resolution)

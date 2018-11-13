@@ -27,7 +27,7 @@ def main():
 
 
     if True:
-        obj = pickle.load(open('model/objective2.pkl', 'rb'))
+        obj = pickle.load(open('model/objective.pkl', 'rb'))
     else:
         xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
 
@@ -66,15 +66,17 @@ def main():
         # goal = Node(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
 
         node = astar(start, goal, obj)
-        path2 = reconstruct_path(node)
-        #print(path[-1,4] - path[0,4])
-        print(obj.integrate_path_cost(path2))
 
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        ax.plot(path[:,0], path[:,1], path[:,2], '.')
-        ax.plot(path2[:,0], path2[:,1], path2[:,2], '.')
-        plt.show()
+        if node is not None:
+            path2 = reconstruct_path(node)
+            #print(path[-1,4] - path[0,4])
+            print(obj.integrate_path_cost(path2))
+
+            fig = plt.figure()
+            ax = fig.gca(projection='3d')
+            ax.plot(path[:,0], path[:,1], path[:,2], '.')
+            ax.plot(path2[:,0], path2[:,1], path2[:,2], '.')
+            plt.show()
 
         #plot_path(path)
 

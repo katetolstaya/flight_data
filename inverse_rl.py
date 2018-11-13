@@ -68,11 +68,14 @@ def main():
                 print(objective.integrate_path_cost(path) - objective.integrate_path_cost(path2) )
                 
                 # update
+
+                # expert traj
                 N = xyzb.shape[0]
                 for i in range(0, N):
                     val = grid.get(xyzb[i,:])
                     grid.set(xyzb[i, :], val - 1.0/N)
 
+                # planner traj
                 M = path2.shape[0]
                 for i in range(0, M):
                     val = grid.get(path2[i,0:4])

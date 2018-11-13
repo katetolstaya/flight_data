@@ -41,6 +41,7 @@ def main():
     #         grid.set(flight.loc_xyzbea[i, :], val-1.0)
 
     n_iters = 10
+    astar_timeout = 30
 
     objective = Objective(grid)
     #random.seed(0)
@@ -57,7 +58,8 @@ def main():
             # goal = Node(xyzb[0,0], xyzb[0,1], xyzb[0,2], (np.pi - xyzb[0,3]) % (2.0 * np.pi), 0)
             goal = Node(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3] , 0)
             start = Node(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
-            node = astar(start, goal, objective)
+
+            node = astar(start, goal, objective, astar_timeout)
 
             if node is not None:
                 path2 = reconstruct_path(node)

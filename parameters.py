@@ -3,8 +3,6 @@ import numpy as np
 class Parameters:
     def __init__(self):
 
-
-
         # data set params
         self.fname = 'flights20160113'
         self.fname = 'flights20160111'

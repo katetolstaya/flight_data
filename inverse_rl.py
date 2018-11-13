@@ -28,9 +28,10 @@ def main():
     
     xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
 
-    resolution = (xyzbea_max - xyzbea_min)/50.0
+    resolution = np.array([2.0, 2.0, 0.2, 0.314])  #(xyzbea_max - xyzbea_min)/20.0
+    print(resolution)
 
-    resolution[0,3] = resolution[0,3] 
+    #resolution[0,3] = resolution[0,3] 
 
     # set grid to number of visits by all trajectories
     grid = Grid(xyzbea_min, xyzbea_max, resolution)
@@ -87,7 +88,7 @@ def main():
 
                 ind = ind + 1
 
-                if ind % 50 == 0 :
+                if ind % 10 == 0 :
                     pickle.dump(objective, open('model/objective.pkl','wb') )
 
 if __name__ == "__main__":

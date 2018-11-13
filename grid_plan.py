@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import random
+import math
 
 from parameters import Parameters
 from process import get_min_time, timestamp, min_dist_to_airport, get_flights, get_min_max
@@ -47,7 +48,7 @@ def main():
 
 
         obj = Objective(grid)
-    #random.seed(0)
+    #random.seed(3)
     random.shuffle(flight_summaries)
 
     for flight in flight_summaries:
@@ -62,21 +63,25 @@ def main():
         goal = Node(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3], 0)
         start = Node(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
 
-        # start = Node(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3], 0)
-        # goal = Node(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
+        # start = Node(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], math.pi + xyzb[-1,3], 0)
+        # goal = Node(xyzb[0,0], xyzb[0,1], xyzb[0,2], math.pi + xyzb[0,3], 0)
 
-        node = astar(start, goal, obj, 300.0)
+        node = astar(start, goal, obj, 60.0)
 
         if node is not None:
             path2 = reconstruct_path(node)
             #print(path[-1,4] - path[0,4])
             print(obj.integrate_path_cost(path2))
 
+            #break
+
             fig = plt.figure()
             ax = fig.gca(projection='3d')
             ax.plot(path[:,0], path[:,1], path[:,2], '.')
             ax.plot(path2[:,0], path2[:,1], path2[:,2], '.')
             plt.show()
+
+        
 
         #plot_path(path)
 

@@ -162,7 +162,6 @@ def get_flights(flights, params):
         if np.min(np.abs(flight.latitude)) == 0.0 or (flight.arrival != airport): # and flight.arrival != airport):
             continue
 
-
         # time within range
         in_range = np.array([timestamp(t) < params.end_t and timestamp(t) > params.start_t for t in flight.time])
         time_delta = datetime.timedelta(0,params.time_delta)
@@ -194,5 +193,8 @@ def get_min_max(flight_summaries):
     for flight in flight_summaries:
         xyzbea_max = np.maximum(xyzbea_max, np.amax(flight.loc_xyzbea, axis=0))
         xyzbea_min = np.minimum(xyzbea_min, np.amin(flight.loc_xyzbea, axis=0))
+
+    xyzbea_max[0,3] = 2*math.pi
+    xyzbea_min[0,3] = 0
 
     return xyzbea_min, xyzbea_max

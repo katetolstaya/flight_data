@@ -53,7 +53,9 @@ def main():
 
         obj = Objective(grid)
 
-    random.seed(3)
+    print('Planning...')
+
+    random.seed(4)
     random.shuffle(flight_summaries)
 
     for flight in flight_summaries:

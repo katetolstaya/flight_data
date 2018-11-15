@@ -54,20 +54,22 @@ def main():
 
     # set up grid
     xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
-    resolution = np.array([2.0, 2.0, 0.2, 0.314]) #/2.0  #(xyzbea_max - xyzbea_min)/20.0
+    resolution = np.array([2.0, 2.0, 0.2, 0.1]) #/ 1.2 #/2.0  #(xyzbea_max - xyzbea_min)/20.0
     grid = Grid(xyzbea_min, xyzbea_max, resolution)
     
     # initialize cost with one pass through the data
-    N = 100
+    N = 500
     for flight in flight_summaries:
         path = interp_expert(flight, N)
-        update_grid(grid, path, -5.0)
+        update_grid(grid, path, -10.0)
 
     objective = Objective(grid)
     save_objective(objective)
 
     random.shuffle(flight_summaries)
     #random.seed(0)
+
+    print('Planning...')
 
     ind = 0 
     n_iters = 10
@@ -89,8 +91,8 @@ def main():
                 expert_path = interp_expert(flight, N)
                 print(objective.integrate_path_cost(expert_path) - objective.integrate_path_cost(planner_path))
 
-                update_grid(grid, planner_path, 1.0)
-                update_grid(grid, expert_path, -1.0)
+                update_grid(grid, planner_path, 100.0)
+                update_grid(grid, expert_path, -100.0)
 
                 ind = ind + 1
                 if ind % 30 == 0 :

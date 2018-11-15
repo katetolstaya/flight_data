@@ -73,7 +73,7 @@ def main():
 
     ind = 0 
     n_iters = 10
-    astar_timeout = 30.0
+    astar_timeout = 60.0
 
     for iter in range(0, n_iters):
 

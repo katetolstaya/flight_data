@@ -14,12 +14,14 @@ from objective import Objective
 from grid import Grid
 
 def save_objective(obj):
-    pickle.dump(obj, open('model/objective.pkl','wb') )
+    pickle.dump(obj, open('model/objective_b.pkl','wb') )
 
 
 def interp_expert(flight, N):
     path = np.concatenate((flight.loc_xyzbea, flight.time.reshape((-1,1))), axis=1)
+    return interp_path(path, N)
 
+def interp_path(path, N):
     min_t = np.min(path[:,4])
     max_t = np.max(path[:,4])
 
@@ -54,7 +56,7 @@ def main():
 
     # set up grid
     xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
-    resolution = np.array([2.0, 2.0, 0.2, 0.1]) #/ 1.2 #/2.0  #(xyzbea_max - xyzbea_min)/20.0
+    resolution = np.array([2.0, 2.0, 0.2, 0.2]) #/ 1.2 #/2.0  #(xyzbea_max - xyzbea_min)/20.0
     grid = Grid(xyzbea_min, xyzbea_max, resolution)
     
     # initialize cost with one pass through the data
@@ -88,6 +90,7 @@ def main():
             if node is not None:
 
                 planner_path = reconstruct_path(node)
+                planner_path = interp_path(planner_path, N)
                 expert_path = interp_expert(flight, N)
                 print(objective.integrate_path_cost(expert_path) - objective.integrate_path_cost(planner_path))
 

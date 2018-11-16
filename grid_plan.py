@@ -38,7 +38,7 @@ def main():
 
     # make or load grid
     if True:
-        obj = pickle.load(open('model/objective.pkl', 'rb'))
+        obj = pickle.load(open('model/objective_a.pkl', 'rb'))
     else:
         xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
         resolution = (xyzbea_max - xyzbea_min)/20.0
@@ -55,8 +55,10 @@ def main():
 
     print('Planning...')
 
-    random.seed(4)
+    random.seed(6)
     random.shuffle(flight_summaries)
+
+    ind = 0
 
     for flight in flight_summaries:
         xyzb = flight.loc_xyzbea
@@ -68,6 +70,10 @@ def main():
         node = astar(start, goal, obj, 60.0)
 
         #break
+        # ind = ind + 1
+        # if ind ==2:
+        #     break
+        # #break
         if node is not None:
             planner_path = reconstruct_path(node)
             print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))

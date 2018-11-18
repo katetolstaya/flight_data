@@ -3,35 +3,28 @@ from planning.dubins_util import dubins_path
 import math
 from math import sqrt  
 
-goal_dist_tol = 0.05
-goal_theta_tol = 0.05 #0.0 * np.pi
-
-dist_delta = 0.1 # 10 meters
-theta_delta = 0.3 # in radians
-t_delta = 25.0 # seconds
-
 inf = float("inf")
 
 class DubinsNode:
 
-    v = 0.1 #0.002 #2.0/100.0
-    delta_theta = 0.125 * math.pi / 100.0 * 5.0 #* 1.5 #* 1.5 #* 5.0 #/ 2.0  # * pi
-    #thetas = [0, delta_theta, 2.0 * delta_theta, -1.0 * delta_theta, -2.0 * delta_theta]
+    v = 0.1 
+    delta_theta = 0.125 * math.pi / 100.0 * 5.0 * 1.5
     thetas = [0,  -1.0 * delta_theta, 1.0 * delta_theta]
-    #zs = np.array([-2.0, -1.0, 0.0, 1.0, 2.0]) / 1000.0 * 6.0
     zs = np.array([ 0.0, -1.0, 1.0]) / 1000.0 * 6.0
-    dt = 30.0 #60.0 #60.0 #120.0 #100.0 #120.0 #100.0 #50.0 #1.0 * 100.0 / 2.0  #* 2.0 #4.0 #/ 2.0 #0.5
-    ddt = 2.0 #dt / 30.0 #3.0 #5.0 / 2.0/2.0 #0.05 * 100.0 / 5.0 #/ 2.0
-
-    dt_theta = dt #/ 2.0
+    dt = 30.0 
+    ddt = 2.0 
+    dt_theta = dt 
     curvatures = [delta_theta / v]
+
+    dist_tol = 0.05
+    theta_tol = 0.05 #0.0 * np.pi
 
     ##############################################
 
     def __init__(self, x=None, y=None, z=None, theta=None, time=None, parent=None, dz=None, dtheta=None, dt=None):
-        # space/time location of node
 
         # need to define these:
+        # space/time location of node
         self.x, self.y, self.z, self.theta, self.time = x, y, z, theta, time
 
         # or these: (or both)
@@ -63,10 +56,18 @@ class DubinsNode:
         return cost
 
     def at_goal_position(self, goal):
-        if abs(self.x - goal.x) >= goal_dist_tol or abs(self.y - goal.y) >= goal_dist_tol or abs(self.z - goal.z) >= goal_dist_tol:
+        if abs(self.x - goal.x) > DubinsNode.dist_tol:
             return False
-        return self.theta_distance(goal) <= goal_theta_tol and self.euclid_distance(goal) <= goal_dist_tol
-       
+        elif abs(self.y - goal.y) > DubinsNode.dist_tol:
+            return False
+        elif abs(self.z - goal.z) > DubinsNode.dist_tol:
+            return False
+        elif self.theta_distance(goal) > DubinsNode.theta_tol:
+            return False 
+        elif self.euclid_distance(goal) > DubinsNode.dist_tol:
+            return False
+        else:
+            return True
 
     def heuristic(self, goal, n_goal=False):
         if n_goal or self.at_goal_position(goal):

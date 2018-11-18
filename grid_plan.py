@@ -1,12 +1,8 @@
 import numpy as np
 import pickle, random, math, sys
 
-sys.path.insert(0, "./dubins_planning")
-sys.path.insert(0, "./util")
-
-
-from util.parameters import Parameters
-from util.process import get_min_time, timestamp, min_dist_to_airport, get_flights, get_min_max
+from parameters import Parameters
+from process import get_min_time, timestamp, min_dist_to_airport, get_flights, get_min_max
 from planning.dubins_node import DubinsNode, reconstruct_path, plot_path
 from planning.objective import DubinsObjective
 from planning.grid import Grid

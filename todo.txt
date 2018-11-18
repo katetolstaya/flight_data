@@ -1,0 +1,18 @@
+Problem:
+Planner is slow
+Motion primitives are too long (so trajectory looks wobbly) - would like to make them shorter, but this would slow down runtime even more
+
+
+Possible solutions:
+Implement ARA*
+Plan in grid space, then fit splines
+Snap nodes to grid
+
+
+Set constant the weight of the potential cost function relative to the path length?
+
+Change the weight of path length in the heuristic.
+
+
+TODO:
+Merge into 1 repo!!

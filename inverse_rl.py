@@ -1,21 +1,19 @@
-import sys
-sys.path.insert(0, "../dubins_planning")
-
 import numpy as np
-import matplotlib.pyplot as plt
-import pickle, random, math
+import pickle, random, math, sys
 
-from parameters import Parameters
-from process import get_min_time, timestamp, min_dist_to_airport, get_flights, get_min_max
+sys.path.insert(0, "./dubins_planning")
+sys.path.insert(0, "./util")
 
-from dubins_node import Node
-from astar import astar, reconstruct_path, plot_path
-from objective import Objective
-from grid import Grid
+from util.parameters import Parameters
+from util.process import get_min_time, timestamp, min_dist_to_airport, get_flights, get_min_max
+from planning.dubins_node import DubinsNode, reconstruct_path, plot_path
+from planning.grid import Grid
+from planning.objective import DubinsObjective
+from planning.arastar import ARAStar
+from planning.astar import AStar
 
 def save_objective(obj):
-    pickle.dump(obj, open('model/objective_b.pkl','wb') )
-
+    pickle.dump(obj, open('model/objective.pkl','wb') )
 
 def interp_expert(flight, N):
     path = np.concatenate((flight.loc_xyzbea, flight.time.reshape((-1,1))), axis=1)
@@ -41,19 +39,19 @@ def update_grid(grid, path, coeff):
     for i in range(0, M):
         grid.set(path[i, 0:4], grid.get(path[i,0:4]) + coeff * 1.0/M)
 
-def main():
-
+def load_flight_data():
     params = Parameters()
-
-    # load flight data
     fnames = ['flights20160111','flights20160112','flights20160113']
     flight_summaries = []
     for fname in fnames:
         flights = pickle.load(open('data/' + fname+ '.pkl', 'rb'))
         _, summaries = get_flights(flights, params)  # read in flight data: id, start time, starting X,Y,Z,yaw, ending X,Y,Z,yaw
         flight_summaries.extend(summaries)
+    return flight_summaries
 
+def main():
 
+    flight_summaries = load_flight_data()
     # set up grid
     xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
     resolution = np.array([2.0, 2.0, 0.2, 0.2]) #/ 1.2 #/2.0  #(xyzbea_max - xyzbea_min)/20.0
@@ -65,41 +63,41 @@ def main():
         path = interp_expert(flight, N)
         update_grid(grid, path, -10.0)
 
-    objective = Objective(grid)
-    save_objective(objective)
+    obj = DubinsObjective(grid)
+    save_objective(obj)
 
     random.shuffle(flight_summaries)
     #random.seed(0)
 
-    print('Planning...')
-
     ind = 0 
     n_iters = 10
-    astar_timeout = 120.0
+    to = 60.0
+
+    print('Planning...')
 
     for iter in range(0, n_iters):
 
         for flight in flight_summaries:
             xyzb = flight.loc_xyzbea
 
-            start = Node(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
-            goal = Node(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3] , 0)
-
-            node = astar(start, goal, objective, astar_timeout)
+            start = DubinsNode(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
+            goal = DubinsNode(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3] , 0)
+            node = ARAStar(start, goal, obj).plan(to)
 
             if node is not None:
-
                 planner_path = reconstruct_path(node)
                 planner_path = interp_path(planner_path, N)
                 expert_path = interp_expert(flight, N)
-                print(objective.integrate_path_cost(expert_path) - objective.integrate_path_cost(planner_path))
+                print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
 
                 update_grid(grid, planner_path, 100.0)
                 update_grid(grid, expert_path, -100.0)
 
                 ind = ind + 1
                 if ind % 30 == 0 :
-                    save_objective(objective)
+                    save_objective(obj)
+            else:
+                print('None')
 
 if __name__ == "__main__":
     main()

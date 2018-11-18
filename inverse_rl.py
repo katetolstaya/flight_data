@@ -70,7 +70,7 @@ def main():
 
     ind = 0 
     n_iters = 10
-    to = 60.0
+    to = 120.0
 
     print('Planning...')
 

@@ -17,7 +17,7 @@ class Grid:
         for i in range(0, self.n_dim):
             self.n[i] = ceil(ceil((self.max_val[i] - self.min_val[i]) / self.resolution[i])) + margin
         self.n = self.n 
-        self.grid = np.zeros(map(tuple, self.n.T)[0])
+        self.grid = np.ones(map(tuple, self.n.T)[0]) * 50.0
 
         self.last_ind = None
         self.last_x = None

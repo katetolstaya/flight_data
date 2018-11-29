@@ -10,23 +10,41 @@ from planning.grid import Grid
 from planning.arastar import ARAStar
 from planning.astar import AStar
 
+# def plot_planner_expert(planner_path, expert_path):
+#     fig = plt.figure()
+#     ax = fig.gca(projection='3d')
+#     ax.plot(expert_path[:,0], expert_path[:,1], expert_path[:,2], '.')
+#     ax.plot(planner_path[:,0], planner_path[:,1], planner_path[:,2], '.')
+    
+
+
 def plot_planner_expert(planner_path, expert_path):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    ax.plot(expert_path[:,0], expert_path[:,1], expert_path[:,2], '.')
-    ax.plot(planner_path[:,0], planner_path[:,1], planner_path[:,2], '.')
+
+    for arr in [expert_path, planner_path]:
+        x = arr[:,0]
+        y = arr[:,1]
+        z = arr[:,2]
+        orientation = arr[:,3]    
+        u = np.cos(orientation)
+        v = np.sin(orientation)
+        w = np.zeros(np.shape(orientation))
+        ax.quiver(x, y, z, u, v, w, length=1.0, normalize=True)
+
     plt.show()
 
 def main():
 
     flight_summaries = load_flight_data()
-    obj = pickle.load(open('model/objective_d.pkl', 'rb'))
+    obj = pickle.load(open('model/objective.pkl', 'rb'))
     random.seed(0)
     random.shuffle(flight_summaries)
 
+
     ind = 0 
     n_iters = 10
-    to = 120.0
+    to =   60.0
     N = 100
     print('Planning...')
 

@@ -53,7 +53,7 @@ def main():
     flight_summaries = load_flight_data()
     # set up grid
     xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
-    resolution = np.array([4.0, 4.0, 0.4, 0.4]) #/ 1.2 #/2.0  #(xyzbea_max - xyzbea_min)/20.0
+    resolution = np.array([4.0, 4.0, 0.4, 0.1]) #/ 1.2 #/2.0  #(xyzbea_max - xyzbea_min)/20.0
     grid = Grid(xyzbea_min, xyzbea_max, resolution)
     
     # initialize cost with one pass through the data
@@ -70,7 +70,7 @@ def main():
 
     ind = 0 
     n_iters = 10
-    to = 120.0
+    to = 90.0
 
     print('Planning...')
 

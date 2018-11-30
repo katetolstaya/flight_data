@@ -30,7 +30,7 @@ def plot_planner_expert(planner_path, expert_path):
         u = np.cos(orientation)
         v = np.sin(orientation)
         w = np.zeros(np.shape(orientation))
-        ax.quiver(x, y, z, u, v, w, length=1.0, normalize=True)
+        ax.quiver(x, y, z, u, v, w, length=1.0)
 
     plt.show()
 

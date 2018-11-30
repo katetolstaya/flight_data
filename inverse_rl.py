@@ -19,19 +19,22 @@ def interp_expert(flight, N):
     return interp_path(path, N)
 
 def interp_path(path, N):
-    min_t = np.min(path[:,4])
-    max_t = np.max(path[:,4])
+    return path
 
-    new_path = np.zeros((N,5))
-    new_path[:,4] = np.linspace(min_t, max_t, N) # time vector
+# def interp_path(path, N):
+#     min_t = np.min(path[:,4])
+#     max_t = np.max(path[:,4])
 
-    for i in range(0,4):
-        if i == 3:
-            period = 2*math.pi
-        else:
-            period = None
-        new_path[:,i] = np.interp(new_path[:,4], path[:,4], path[:,i], period=period)
-    return new_path
+#     new_path = np.zeros((N,5))
+#     new_path[:,4] = np.linspace(min_t, max_t, N) # time vector
+
+#     for i in range(0,4):
+#         if i == 3:
+#             period = 2*math.pi
+#         else:
+#             period = None
+#         new_path[:,i] = np.interp(new_path[:,4], path[:,4], path[:,i], period=period)
+#     return new_path
 
 def update_grid(grid, path, coeff):
     M = path.shape[0]
@@ -91,7 +94,6 @@ def main():
 
                 update_grid(grid, planner_path, 100.0)
                 update_grid(grid, expert_path, -100.0)
-
                 ind = ind + 1
                 if ind % 30 == 0 :
                     save_objective(obj)

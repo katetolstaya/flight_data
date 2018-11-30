@@ -16,7 +16,7 @@ from planning.astar import AStar
 def main():
 
     flight_summaries = load_flight_data()
-    obj = pickle.load(open('model/objective_f.pkl', 'rb'))
+    obj = pickle.load(open('model/objective.pkl', 'rb'))
     random.seed(0)
     random.shuffle(flight_summaries)
 
@@ -55,15 +55,15 @@ def main():
     #print(orientation)
 
 
-    u = np.sin(orientation)
-    v = np.cos(orientation)
+    u = np.cos(orientation)
+    v = np.sin(orientation)
     w = np.zeros(np.shape(orientation))
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
 
 
-    ax.quiver(x, y, z, u, v, w, length=1.0, normalize=True)
+    ax.quiver(x, y, z, u, v, w, length=1.0)
     plt.show()
 
     #print(min(grid[abs(grid)>0]))

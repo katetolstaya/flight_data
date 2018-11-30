@@ -21,8 +21,9 @@ from planning.astar import AStar
 def plot_planner_expert(planner_path, expert_path):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
+    colors = ['g', 'r']
 
-    for arr in [expert_path, planner_path]:
+    for i, arr in enumerate([expert_path, planner_path]):
         x = arr[:,0]
         y = arr[:,1]
         z = arr[:,2]
@@ -30,14 +31,14 @@ def plot_planner_expert(planner_path, expert_path):
         u = np.cos(orientation)
         v = np.sin(orientation)
         w = np.zeros(np.shape(orientation))
-        ax.quiver(x, y, z, u, v, w, length=1.0)
+        ax.quiver(x, y, z, u, v, w, color=colors[i], length=1.0)
 
     plt.show()
 
 def main():
 
     flight_summaries = load_flight_data()
-    obj = pickle.load(open('model/objective.pkl', 'rb'))
+    obj = pickle.load(open('model/objective_zero.pkl', 'rb'))
     random.seed(0)
     random.shuffle(flight_summaries)
 

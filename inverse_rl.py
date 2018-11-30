@@ -12,7 +12,7 @@ from planning.arastar import ARAStar
 from planning.astar import AStar
 
 def save_objective(obj):
-    pickle.dump(obj, open('model/objective.pkl','wb') )
+    pickle.dump(obj, open('model/objective_zero.pkl','wb') )
 
 def interp_expert(flight, N):
     path = np.concatenate((flight.loc_xyzbea, flight.time.reshape((-1,1))), axis=1)

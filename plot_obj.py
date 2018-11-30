@@ -32,7 +32,7 @@ def main():
 
     #print(orientation.nonzero())
 
-    good = np.min(grid, axis=3)<-1
+    good = np.min(grid, axis=3)<30
 
 
 
@@ -63,7 +63,7 @@ def main():
     ax = fig.gca(projection='3d')
 
 
-    ax.quiver(x, y, z, u, v, w, length=1.0)
+    ax.quiver(x, y, z, u, v, w, color='g', length=1.0)
     plt.show()
 
     #print(min(grid[abs(grid)>0]))

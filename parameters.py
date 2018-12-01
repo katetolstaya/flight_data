@@ -11,14 +11,14 @@ class Parameters:
         self.center_t = 32000.0 #25000.0 + 4000.0 #1452748000.0 + 9000.0  # + 300.0
         self.range_t = 1000000 #500.0 #200.0 #500.0
 
-        self.alt_lim =  2500.0
+        self.alt_lim =  3000.0
         self.dist_lim = 50000.0 # 100000.0
 
         self.min_time = 0
         self.start_t = 0
         self.end_t = 0
 
-        self.time_delta = 1000
+        self.time_delta = 1500
 
         self.time_limit = 2.0
 

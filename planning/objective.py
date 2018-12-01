@@ -10,15 +10,18 @@ class DubinsObjective:
         # self.others = others # a tuple of arrays for every other plane
         self.grid = grid
         self.cost_type = sigmoid
-        self.dN = 4 # don't check all points for efficiency
+        self.dN = 10 # don't check all points for efficiency
         self.w = 1.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
         self.v = 0.1
+        self.N = 10
 
     def integrate_path_cost(self, path):
 
         last_node = DubinsNode(path[0, 0], path[0, 1], path[0, 2], path[0, 3], path[0, 4])
         cost = 0
-        for i in range(1, np.size(path, 0), self.dN): 
+        N = 100
+        dN = 1 #20 #max(int(np.size(path, 0)/N), 1)
+        for i in range(1, np.size(path, 0), dN): 
             
             # below ground is out of bounds
             if path[i, 2] < -0.5 or cost == inf:

@@ -11,8 +11,8 @@ class DubinsNode:
     delta_theta = 0.125 * math.pi / 100.0 * 5.0 * 1.5
     thetas = [0,  -1.0 * delta_theta, 1.0 * delta_theta]
     zs = np.array([ 0.0, -1.0, 1.0]) / 1000.0 * 6.0
-    dt = 30.0 
-    ddt = 2.0 
+    dt = 25.0 
+    ddt = 0.5 
     dt_theta = dt 
     curvatures = [delta_theta / v]
 
@@ -172,7 +172,7 @@ class DubinsNode:
             if self.x is None: # lazy evaluation of end point
                 self.x, self.y, self.z = path[N-1, 0], path[N-1, 1], path[N-1, 2]
                 self.theta, self.time = path[N-1, 3], path[N-1, 4]
-            return path
+            return path[0::10,:]
         else:
             return None
 

@@ -38,7 +38,7 @@ def plot_planner_expert(planner_path, expert_path):
 def main():
 
     flight_summaries = load_flight_data()
-    obj = pickle.load(open('model/objective_zero.pkl', 'rb'))
+    obj = pickle.load(open('model/objective_exp.pkl', 'rb'))
     random.seed(0)
     random.shuffle(flight_summaries)
 
@@ -58,7 +58,7 @@ def main():
 
         if node is not None:
             planner_path = reconstruct_path(node)
-            planner_path = interp_path(planner_path, N)
+            planner_path = planner_path[0::5,:] #interp_path(planner_path, N)
             expert_path = interp_expert(flight, N)
             print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
             plot_planner_expert(planner_path, expert_path)

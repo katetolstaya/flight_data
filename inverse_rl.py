@@ -77,44 +77,45 @@ def main():
 
     print('Planning...')
 
-    # for iter in range(0, n_iters):
-
-    #     for flight in flight_summaries:
-    #         xyzb = flight.loc_xyzbea
-
-    #         start = DubinsNode(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
-    #         goal = DubinsNode(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3] , 0)
-    #         node = ARAStar(start, goal, obj).plan(to)
-
-    #         if node is not None:
-    #             planner_path = reconstruct_path(node)
-    #             planner_path = interp_path(planner_path, N)
-    #             expert_path = interp_expert(flight, N)
-    #             print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
-
-    #             update_grid(grid, planner_path, 100.0)
-    #             update_grid(grid, expert_path, -100.0)
-    #             ind = ind + 1
-    #             if ind % 30 == 0 :
-    #                 save_objective(obj)
-    #         else:
-    #             print('None')
-
     for iter in range(0, n_iters):
 
         for flight in flight_summaries:
             xyzb = flight.loc_xyzbea
 
-            planner_path = reconstruct_path(node)
-            planner_path = planner_path[0::5,:] #interp_path(planner_path, N)
-            expert_path = interp_expert(flight, N)
-            print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
+            start = DubinsNode(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
+            goal = DubinsNode(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3] , 0)
+            node = ARAStar(start, goal, obj).plan(to)
 
-            update_grid(grid, expert_path, -100.0)
-            ind = ind + 1
-            print(ind)
+            if node is not None:
+                planner_path = reconstruct_path(node)
+                #planner_path = interp_path(planner_path, N)
+                planner_path = planner_path[0::5,:]
+                expert_path = interp_expert(flight, N)
+                print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
+
+                update_grid(grid, planner_path, 100.0)
+                update_grid(grid, expert_path, -100.0)
+                ind = ind + 1
+                if ind % 30 == 0 :
+                    save_objective(obj)
+            else:
+                print('None')
+
+    # for iter in range(0, n_iters):
+
+    #     for flight in flight_summaries:
+    #         xyzb = flight.loc_xyzbea
+
+    #         planner_path = reconstruct_path(node)
+    #         planner_path = planner_path[0::5,:] #interp_path(planner_path, N)
+    #         expert_path = interp_expert(flight, N)
+    #         print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
+
+    #         update_grid(grid, expert_path, -100.0)
+    #         ind = ind + 1
+    #         print(ind)
             
-    save_objective(obj)
+    # save_objective(obj)
 
 
 if __name__ == "__main__":

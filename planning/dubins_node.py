@@ -21,6 +21,7 @@ class DubinsNode:
 
 
     # TODO make lookup tables here for the end of each primitive
+    # TODO move these params to config
     dind_res_x = 1.0
     dind_res_y = 1.0
     dind_res_z = 1.0

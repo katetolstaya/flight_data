@@ -1,23 +1,53 @@
 import numpy as np
 from planning.dubins_util import dubins_path
 import math
-from math import sqrt  
+from math import sqrt
 
 inf = float("inf")
 
-class DubinsNode:
 
-    v = 0.1 
+class DubinsNode:
+    v = 0.1
     delta_theta = 0.125 * math.pi / 100.0 * 5.0 * 1.5
-    thetas = [0,  -1.0 * delta_theta, 1.0 * delta_theta]
-    zs = np.array([ 0.0, -1.0, 1.0]) / 1000.0 * 6.0
-    dt = 30.0 #25.0 
-    ddt = 0.5 
-    dt_theta = dt 
+    thetas = [0, -1.0 * delta_theta, 1.0 * delta_theta]
+    zs = np.array([0.0, -1.0, 1.0]) / 1000.0 * 6.0
+    dt = 30.0  # 25.0
+    ddt = 0.5
+    dt_theta = dt
     curvatures = [delta_theta / v]
 
     dist_tol = 0.05
-    theta_tol = 0.05 #0.0 * np.pi
+    theta_tol = 0.05  # 0.0 * np.pi
+
+
+    # TODO make lookup tables here for the end of each primitive
+    dind_res_x = 1.0
+    dind_res_y = 1.0
+    dind_res_z = 1.0
+    dind_res_theta = 1.0
+    dind_res_time = 0.1
+
+    dind_num_theta = int(2 * math.pi / dind_res_theta)
+
+    # x,y will depend on theta primitive and current theta
+    dind_x = np.zeros((len(thetas), dind_num_theta))
+    dind_y = np.zeros((len(thetas), dind_num_theta))
+
+    # theta also depends on both because modulo 2pi
+    dind_theta = np.zeros((len(thetas), dind_num_theta))
+
+    # z depends only on the z primitive
+    dind_z = zs / dind_res_z
+
+    # t depends only on the time resolution
+    dind_time = dt_theta / dind_res_time
+
+    # TODO also make tables for trajectory interpolation
+
+    # TODO precompute the map of costs ( given airport location, and the location of the other airplanes)
+    # TODO store only node indices in Dubins nodes, and only convert to dense trajectories in physical space
+    # TODO shorten primitive length to be short enough for interpolation needed for cost computations
+    # TODO a function to interpolate the full path in physical space
 
     ##############################################
 
@@ -28,7 +58,7 @@ class DubinsNode:
         self.x, self.y, self.z, self.theta, self.time = x, y, z, theta, time
 
         # or these: (or both)
-        self.parent, self.dz, self.dtheta = parent, dz, dtheta # these are arrays
+        self.parent, self.dz, self.dtheta = parent, dz, dtheta  # these are arrays
         self.delta_t = dt
 
     def __str__(self):
@@ -40,7 +70,7 @@ class DubinsNode:
 
     def __eq__(self, othr):
         return (isinstance(othr, type(self)) and (self.x, self.y, self.z, self.theta, self.time) == (
-        othr.x, othr.y, othr.z, othr.theta, othr.time))
+            othr.x, othr.y, othr.z, othr.theta, othr.time))
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -63,7 +93,7 @@ class DubinsNode:
         elif abs(self.z - goal.z) > DubinsNode.dist_tol:
             return False
         elif self.theta_distance(goal) > DubinsNode.theta_tol:
-            return False 
+            return False
         elif self.euclid_distance(goal) > DubinsNode.dist_tol:
             return False
         else:
@@ -73,23 +103,22 @@ class DubinsNode:
         if n_goal or self.at_goal_position(goal):
             return 0
         else:
-            return (1.0) * self.dubins_distance(goal)         #return self.distance(end)
-
+            return (1.0) * self.dubins_distance(goal)  # return self.distance(end)
 
     def distance(self, other):
         other = other[1]
         return self.time_distance(other) + self.euclid_distance(other) + self.theta_distance(other)
 
-
     def euclid_distance(self, other):
         dist = sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)  # L2
-        return dist 
+        return dist
 
-    # difference in angles
+        # difference in angles
+
     def theta_distance(self, target):
         x = target.theta
         y = self.theta
-        return abs(math.pi - abs(abs(x - y) - math.pi)) # abs(math.atan2(math.sin(x - y), math.cos(x - y))) #
+        return abs(math.pi - abs(abs(x - y) - math.pi))  # abs(math.atan2(math.sin(x - y), math.cos(x - y))) #
 
     def time_distance(self, other):
         return abs(self.time - other.time)
@@ -97,18 +126,21 @@ class DubinsNode:
     # Dubins distance used for heuristic
     def dubins_distance(self, goal):
 
-        bc = max(DubinsNode.curvatures) # largest curvature is always more efficient
+        bc = max(DubinsNode.curvatures)  # largest curvature is always more efficient
         bcost, bt, bp, bq, bmode = dubins_path(self.x, self.y, self.theta, goal.x, goal.y, goal.theta, bc)
 
         turn_speed = bc * DubinsNode.v
         tpq = [bt, bp, bq]
 
-        dt = np.zeros((3,1))
+        dt = np.zeros((3, 1))
 
-        for i in range(0,3):
-            if bmode[i] == "L":   dt[i] = tpq[i] / turn_speed
-            elif bmode[i] == "R": dt[i] = tpq[i] / turn_speed
-            elif bmode[i] == "S": dt[i] = tpq[i] / bc / DubinsNode.v
+        for i in range(0, 3):
+            if bmode[i] == "L":
+                dt[i] = tpq[i] / turn_speed
+            elif bmode[i] == "R":
+                dt[i] = tpq[i] / turn_speed
+            elif bmode[i] == "S":
+                dt[i] = tpq[i] / bc / DubinsNode.v
 
         delta_time = np.sum(dt)
 
@@ -117,8 +149,7 @@ class DubinsNode:
         while delta_z / delta_time > max(DubinsNode.zs):
             delta_time = delta_time + 2 * math.pi / turn_speed
 
-        return sqrt((delta_time * DubinsNode.v) ** 2 + (delta_z) ** 2) #* 2 # L2
-
+        return sqrt((delta_time * DubinsNode.v) ** 2 + (delta_z) ** 2)  # * 2 # L2
 
     ############################################
 
@@ -140,7 +171,7 @@ class DubinsNode:
                 #    neighbors.append(n)  #- TODO in cost/objective class
 
         if goal is not None:
-            goal_neighbor = self.path_to_goal(goal) # try to make a dubins path to goal
+            goal_neighbor = self.path_to_goal(goal)  # try to make a dubins path to goal
             if goal_neighbor is not None: neighbors.append(goal_neighbor)
 
         return neighbors
@@ -156,23 +187,24 @@ class DubinsNode:
             cum_time = np.cumsum(self.delta_t) + self.parent.time
 
             path = np.zeros((N, 5))
-            path[0,:] = np.array([self.parent.x, self.parent.y, self.parent.z, self.parent.theta, self.parent.time]).reshape((1,5))
+            path[0, :] = np.array(
+                [self.parent.x, self.parent.y, self.parent.z, self.parent.theta, self.parent.time]).reshape((1, 5))
 
             j = 0
             for i in range(1, N):
-                path[i, 0] =  path[i-1, 0] + DubinsNode.ddt * DubinsNode.v * math.cos(path[i-1, 3])
-                path[i, 1] =  path[i-1, 1] + DubinsNode.ddt * DubinsNode.v * math.sin(path[i-1, 3])
-                path[i, 2] =  path[i-1, 2] + DubinsNode.ddt * self.dz[j]
-                path[i, 3] = path[i-1, 3] + DubinsNode.ddt * self.dtheta[j]
-                path[i, 4] = path[i-1, 4] + DubinsNode.ddt
+                path[i, 0] = path[i - 1, 0] + DubinsNode.ddt * DubinsNode.v * math.cos(path[i - 1, 3])
+                path[i, 1] = path[i - 1, 1] + DubinsNode.ddt * DubinsNode.v * math.sin(path[i - 1, 3])
+                path[i, 2] = path[i - 1, 2] + DubinsNode.ddt * self.dz[j]
+                path[i, 3] = path[i - 1, 3] + DubinsNode.ddt * self.dtheta[j]
+                path[i, 4] = path[i - 1, 4] + DubinsNode.ddt
 
                 path[i, 3] = (path[i, 3] + 2 * math.pi) % (2 * math.pi)
                 j = np.searchsorted(cum_time, path[i, 4])
 
-            if self.x is None: # lazy evaluation of end point
-                self.x, self.y, self.z = path[N-1, 0], path[N-1, 1], path[N-1, 2]
-                self.theta, self.time = path[N-1, 3], path[N-1, 4]
-            return path[0::5,:]
+            if self.x is None:  # lazy evaluation of end point
+                self.x, self.y, self.z = path[N - 1, 0], path[N - 1, 1], path[N - 1, 2]
+                self.theta, self.time = path[N - 1, 3], path[N - 1, 4]
+            return path[0::5, :]
         else:
             return None
 
@@ -190,10 +222,10 @@ class DubinsNode:
         tpq = [bt, bp, bq]
 
         # generate dz, dtheta -> Node object
-        dtheta = np.zeros((3,1))
-        dt = np.zeros((3,1))
+        dtheta = np.zeros((3, 1))
+        dt = np.zeros((3, 1))
 
-        for i in range(0,3):
+        for i in range(0, 3):
             if bmode[i] == "L":
                 dtheta[i] = turn_speed
                 dt[i] = tpq[i] / turn_speed
@@ -207,7 +239,6 @@ class DubinsNode:
         delta_time = np.sum(dt)
         delta_z = goal.z - self.z
 
-
         if delta_time == 0.0:
             return None
 
@@ -218,21 +249,20 @@ class DubinsNode:
 
         return DubinsNode(goal.x, goal.y, goal.z, goal.theta, self.time + delta_time, self, dz, dtheta, dt)
 
-    ############################################
+        ############################################
+
 
 def reconstruct_path(n):
     path = np.zeros((0, 5))
     while n.parent is not None:
         new_path = np.flip(n.interpolate(), 0)
         path = np.concatenate((path, new_path), axis=0)
-        n = n.parent 
+        n = n.parent
     return np.flip(path, 0)
+
 
 def plot_path(path):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    ax.plot(path[:,0], path[:,1], path[:,2], 'o')
+    ax.plot(path[:, 0], path[:, 1], path[:, 2], 'o')
     plt.show()
-
-
-

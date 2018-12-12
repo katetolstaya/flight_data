@@ -16,7 +16,7 @@ from planning.astar import AStar
 def main():
 
     flight_summaries = load_flight_data()
-    obj = pickle.load(open('model/objective_exp.pkl', 'rb'))
+    obj = pickle.load(open('model/objective_exp2.pkl', 'rb'))
     random.seed(0)
     random.shuffle(flight_summaries)
 
@@ -33,8 +33,6 @@ def main():
     #print(orientation.nonzero())
 
     good = np.min(grid, axis=3)<-30
-
-
 
     x, y, z = good.nonzero()
 

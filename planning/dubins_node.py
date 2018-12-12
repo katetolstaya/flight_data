@@ -172,7 +172,7 @@ class DubinsNode:
             if self.x is None: # lazy evaluation of end point
                 self.x, self.y, self.z = path[N-1, 0], path[N-1, 1], path[N-1, 2]
                 self.theta, self.time = path[N-1, 3], path[N-1, 4]
-            return path[0::10,:]
+            return path[0::5,:]
         else:
             return None
 

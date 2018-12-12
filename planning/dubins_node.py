@@ -207,8 +207,7 @@ class DubinsNode:
         delta_time = np.sum(dt)
         delta_z = goal.z - self.z
 
-        # while abs(delta_z) / delta_time > max(Node.zs):
-        #     delta_time = delta_time + 2 * math.pi / turn_speed
+
         if delta_time == 0.0:
             return None
 

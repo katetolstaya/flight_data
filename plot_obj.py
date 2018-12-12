@@ -32,9 +32,7 @@ def main():
 
     #print(orientation.nonzero())
 
-    good = np.min(grid, axis=3)<-200
-
-
+    good = np.min(grid, axis=3)<-30
 
     x, y, z = good.nonzero()
 

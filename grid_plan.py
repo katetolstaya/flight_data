@@ -38,14 +38,14 @@ def plot_planner_expert(planner_path, expert_path):
 def main():
 
     flight_summaries = load_flight_data()
-    obj = pickle.load(open('model/objective.pkl', 'rb'))
+    obj = pickle.load(open('model/objective_exp.pkl', 'rb'))
     random.seed(0)
     random.shuffle(flight_summaries)
 
 
     ind = 0 
     n_iters = 10
-    to =   60.0
+    to =   600.0
     N = 100
     print('Planning...')
 

@@ -11,7 +11,7 @@ class DubinsObjective:
         self.grid = grid
         self.cost_type = sigmoid
         self.dN = 10 # don't check all points for efficiency
-        self.w = 1.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
+        self.w = 1.0 #1.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
         self.v = 0.1
         self.N = 10
 

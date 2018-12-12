@@ -11,7 +11,7 @@ class DubinsNode:
     delta_theta = 0.125 * math.pi / 100.0 * 5.0 * 1.5
     thetas = [0,  -1.0 * delta_theta, 1.0 * delta_theta]
     zs = np.array([ 0.0, -1.0, 1.0]) / 1000.0 * 6.0
-    dt = 25.0 
+    dt = 30.0 #25.0 
     ddt = 0.5 
     dt_theta = dt 
     curvatures = [delta_theta / v]
@@ -207,8 +207,7 @@ class DubinsNode:
         delta_time = np.sum(dt)
         delta_z = goal.z - self.z
 
-        # while abs(delta_z) / delta_time > max(Node.zs):
-        #     delta_time = delta_time + 2 * math.pi / turn_speed
+
         if delta_time == 0.0:
             return None
 

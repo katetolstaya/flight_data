@@ -14,5 +14,8 @@ Set constant the weight of the potential cost function relative to the path leng
 Change the weight of path length in the heuristic.
 
 
-TODO:
-Merge into 1 repo!!
+IDEAS:
+
+1) Prune high cost trajectories (as if high cost regions are fake obstacles)
+2) Interpolate resulting trajectories using splines
+3) Refine splines by adding control points sampled using a Variational Autoencoder

@@ -65,8 +65,11 @@ class ARAStar:
         return min_val
 
     def __improve_path(self, timeout):
-
+        num_open = 0
         while self.goal_node is None or self.__f_val(self.goal_node) > self.open_set.peek()[0]:
+            num_open = num_open + 1
+            if num_open % 100 == 0:
+                print(num_open)
             if time.time() > timeout: 
                 return 1
 

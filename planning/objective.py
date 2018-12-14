@@ -6,6 +6,8 @@ inf = float("inf")
 
 
 class DubinsObjective:
+    # TODO precompute the map of costs ( given airport location, and the location of the other airplanes)
+
     def __init__(self, grid=None):
         # self.others = others # a tuple of arrays for every other plane
         self.grid = grid
@@ -17,6 +19,13 @@ class DubinsObjective:
         self.v = 0.1
         self.N = 10
 
+        # TODO already have the cost grid, just have to resample more finely
+
+    # TODO get cost for index in grid (need to precompute this grid in the constructor) - should be huge
+    def get_cost(self, ind):
+        return 0
+
+    # TODO - cost of each primitive is const, just need to add destination point cost from grid
     def integrate_path_cost(self, path):
 
         last_node = DubinsNode(path[0, 0], path[0, 1], path[0, 2], path[0, 3], path[0, 4])

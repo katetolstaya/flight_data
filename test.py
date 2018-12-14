@@ -2,13 +2,15 @@ import numpy as np
 import pickle, random, math, sys
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
-from train import interp_expert, load_flight_data, interp_expert, reconstruct_path
-from planning.dubins_node import DubinsNode, reconstruct_path, plot_path
-from planning.objective import DubinsObjective
-from planning.grid import Grid
-from planning.arastar import ARAStar
+from process import get_min_time, timestamp, min_dist_to_airport, get_flights, get_min_max
+from train import interp_expert, load_flight_data, interp_expert
+from planning.dubins_node import reconstruct_path
+# from planning.objective import DubinsObjective
+# from planning.grid import Grid
+# from planning.arastar import ARAStar
 from planning.astar import AStar
+from planning.dubins_problem import DubinsProblem
+import configparser
 
 # def plot_planner_expert(planner_path, expert_path):
 #     fig = plt.figure()
@@ -37,24 +39,34 @@ def plot_planner_expert(planner_path, expert_path):
 
 def main():
 
+    config_file = 'params.cfg'
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    config = config['plan1']
+
     flight_summaries = load_flight_data()
+    xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
+    xyzbea_min = np.append(xyzbea_max, [0.0])
+    xyzbea_max = np.append(xyzbea_max, [1.0])
     obj = pickle.load(open('model/objective_exp.pkl', 'rb'))
     random.seed(0)
     random.shuffle(flight_summaries)
-
 
     ind = 0 
     n_iters = 10
     to =   600.0
     N = 100
     print('Planning...')
+    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
     for flight in flight_summaries:
         xyzb = flight.loc_xyzbea
 
-        start = DubinsNode(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
-        goal = DubinsNode(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3] , 0)
-        node = ARAStar(start, goal, obj).plan(to)
+        start = np.array([xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0]).flatten()
+        goal = np.array([xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3] , 0]).flatten()
+
+
+        node = AStar(problem, start, goal, obj).plan(to)
 
         if node is not None:
             planner_path = reconstruct_path(node)

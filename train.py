@@ -5,7 +5,7 @@ import pickle, random, math, sys
 
 from parameters import Parameters
 from process import get_min_time, timestamp, min_dist_to_airport, get_flights, get_min_max
-from planning.dubins_node import DubinsNode, reconstruct_path, plot_path
+from planning.dubins_node import reconstruct_path, plot_path
 from planning.grid import Grid
 from planning.objective import DubinsObjective
 from planning.arastar import ARAStar

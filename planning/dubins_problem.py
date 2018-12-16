@@ -2,6 +2,7 @@ import numpy as np
 import math
 from math import sqrt
 from planning.dubins_util import dubins_path
+from dubins_node import DubinsNode
 inf = float("inf")
 
 class DubinsProblem:
@@ -11,22 +12,26 @@ class DubinsProblem:
         # TODO shorten primitive length to be short enough for interpolation needed for cost computations
 
         self.config = config
+
+        coord_min[3] = 0
+        coord_max[3] = 2 * np.pi
         self.coord_min = coord_min
         self.coord_max = coord_max
 
-        self.v = float(config['velocity'])
-        self.delta_theta = float(config['delta_theta'])
-        self.curvature = self.delta_theta / self.v
-        self.delta_z = float(config['delta_z'])
-
-        self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.delta_theta
-        self.ps_z = np.array([0.0, -1.0, 1.0]) * self.delta_z
-        self.max_delta_z = max(self.ps_z)
-        self.num_ps_theta = len(self.ps_theta)
-        self.num_ps_z = len(self.ps_z)
-
         self.dt = float(config['dt'])
         self.ddt = float(config['ddt'])
+
+        self.v_xy = float(config['velocity_x'])
+        self.v_theta = float(config['velocity_theta'])
+        self.v_z = float(config['velocity_z'])
+        self.curvature = self.v_theta / self.v_xy
+
+        self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
+        self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z
+
+        self.max_ps_z = max(self.ps_z)
+        self.num_ps_theta = 3 #len(self.ps_theta)
+        self.num_ps_z = 3 #len(self.ps_z)
 
         self.lookup_res_xy = float(config['dind_res_xy'])
         self.lookup_res_z = float(config['dind_res_z'])
@@ -35,9 +40,13 @@ class DubinsProblem:
         self.lookup_res = np.array(
             [self.lookup_res_xy, self.lookup_res_xy, self.lookup_res_z, self.lookup_res_theta, self.lookup_res_time])
 
-        # TODO make a single array of all the primitives.
-        # TODO this is more complicated actually due to dz.
-        self.primitive_cost = self.v * self.dt
+        self.goal_res_xy = float(config['goal_res_xy'])
+        self.goal_res_z = float(config['goal_res_z'])
+        self.goal_res_theta = float(config['goal_res_theta'])
+        self.goal_res_time = float(config['goal_res_time'])
+        self.goal_res = np.array(
+            [self.goal_res_xy, self.goal_res_xy, self.goal_res_z, self.goal_res_theta, self.goal_res_time])
+        self.goal_res = self.goal_res / self.lookup_res
 
         # generate from data
         self.lookup_num_thetas = int(2 * math.pi / self.lookup_res_theta) + 1
@@ -53,7 +62,10 @@ class DubinsProblem:
 
         # make lookup tables here for the end of each primitive
         # z depends only on the z primitive
-        self.lookup_delta_z = (self.ps_z / self.lookup_res_z).astype(int)
+        self.lookup_delta_z = (self.dt * self.ps_z / self.lookup_res_z).astype(int)
+
+        self.lookup_prim_cost = np.sqrt(np.power(self.ps_z * self.dt, 2) + (self.v_xy * self.dt)**2)
+        self.lookup_prim_cost = np.sqrt(np.power(self.ps_z * self.dt, 2) + (self.v_xy * self.dt)**2)
 
         # t depends only on the time resolution
         self.delta_time = int(self.dt / self.lookup_res_time)
@@ -67,73 +79,75 @@ class DubinsProblem:
 
         for i in range(0, self.num_ps_theta):
             for j in range(0, self.lookup_num_thetas):
-                theta = j * self.lookup_res_theta + self.coord_min[3]
-                dx = dy = 0
+                theta = float(j) * self.lookup_res_theta #+ self.coord_min[3]
+                dx = 0.0
+                dy = 0.0
                 for t in range(0, int(self.dt / self.ddt)):
-                    dx = dx + self.ddt * self.v * math.cos(theta)
-                    dy = dy + self.ddt * self.v * math.sin(theta)
-                    theta = np.mod(theta + self.ddt * self.ps_theta[i], 2 * np.pi)
+                    dx = dx + self.ddt * self.v_xy * math.cos(theta)
+                    dy = dy + self.ddt * self.v_xy * math.sin(theta)
+                    theta = self.theta_2pi(theta + self.ddt * self.ps_theta[i])
 
                 self.lookup_delta_x[i, j] = int(dx / self.lookup_res_xy)
                 self.lookup_delta_y[i, j] = int(dy / self.lookup_res_xy)
                 self.lookup_theta[i, j] = int(theta / self.lookup_res_theta)
 
         self.bc = self.curvature * self.lookup_res_xy  # convert curvature from world to indices - should be right
-        self.turn_speed = self.curvature * self.v  # turn speed dtheta / dt is constant
-        self.scaled_v = self.bc * self.v / self.lookup_res_xy # TODO check this!!
-        self.scaled_vz = self.max_delta_z / self.lookup_res_z
+        self.turn_speed = self.curvature * self.v_xy  # turn speed dtheta / dt is constant
+        self.scaled_v = self.bc * self.v_xy / self.lookup_res_xy # TODO check this!!
+        self.scaled_vz = self.max_ps_z / self.lookup_res_z
 
     def to_ind(self, loc):
+        loc[3] = self.theta_2pi(loc[3])
         return ((loc - self.coord_min) / self.lookup_res).astype(int)
 
     def to_loc(self, ind):
-        return ind * self.lookup_res + self.coord_min
+        return ind.astype(float) * self.lookup_res + self.coord_min
 
     def to_angle(self, ind):
-        return ind * self.lookup_res[3] + self.coord_min[3]
+        return float(ind) * self.lookup_res[3] + self.coord_min[3]
 
-    def get_neighbors(self, ind):
+    def get_neighbors(self, parent_node):
         neighbors = []
+        parent = parent_node.loc
         for dzi in range(0, self.num_ps_z):
             for dti in range(0, self.num_ps_theta):
-                neigh = np.zeros((5,))
-                neigh[0] = ind[0] + self.lookup_delta_x[dti, ind[3]]
-                neigh[1] = ind[1] + self.lookup_delta_y[dti, ind[3]]
-                neigh[2] = ind[2] + self.lookup_delta_z[dzi]
-                neigh[3] = self.lookup_theta[dti, ind[3]]
-                neigh[4] = ind[4] + self.delta_time
-                neighbors.append(neigh)
+                neigh_loc = np.zeros((5,), dtype=int)
+                neigh_loc[0] = parent[0] + self.lookup_delta_x[dti, parent[3]]
+                neigh_loc[1] = parent[1] + self.lookup_delta_y[dti, parent[3]]
+                neigh_loc[2] = parent[2] + self.lookup_delta_z[dzi]
+                neigh_loc[3] = self.lookup_theta[dti, parent[3]]
+                neigh_loc[4] = parent[4] #+ self.delta_time
+                if neigh_loc.min() >= 0:  # in bounds
+                    neighbors.append((self.new_node(neigh_loc, parent_node), self.lookup_prim_cost[dzi]))
         return neighbors
 
-    def hash(self, ind):
-        return hash((ind.T.dot(self.hash_coeffs)))
+    def new_node(self, loc, parent_node=None):
+        if loc.dtype != int:
+            loc = self.to_ind(loc)
+        return DubinsNode(loc, self.hash_coeffs, parent_node)
 
-    def heuristic(self, ind_start, ind_end):
-        return self.dubins_distance(ind_start, ind_end)
+    def heuristic(self, start_node, end_node):
+        return self.dubins_distance(start_node.loc, end_node.loc)
 
-    # TODO - implement dubins distance in primitive coordinates (easy if x,y,z resolutions are same)
-    def dubins_distance(self, start, goal):
-
-        bcost, bt, bp, bq, bmode = dubins_path(start[0], start[1], self.to_angle(start[3]), goal[0], goal[1], self.to_angle(goal[3]), self.bc)
+    def dubins_distance(self, si, gi):
+        _, bt, bp, bq, bmode = dubins_path(si[0], si[1], self.to_angle(si[3]), gi[0], gi[1], self.to_angle(gi[3]), self.bc)
         tpq = [bt, bp, bq]
-
-        dt = np.zeros((3, 1))
+        delta_time = 0
 
         for i in range(0, 3):
             if bmode[i] == "L":
-                dt[i] = tpq[i] / self.turn_speed  # turn speed const
+                delta_time = delta_time + tpq[i] / self.turn_speed  # turn speed const
             elif bmode[i] == "R":
-                dt[i] = tpq[i] / self.turn_speed  # turn speed is const
+                delta_time = delta_time + tpq[i] / self.turn_speed  # turn speed is const
             elif bmode[i] == "S":
-                dt[i] = tpq[i] / self.scaled_v
+                delta_time = delta_time + tpq[i] / self.scaled_v
 
-        delta_time = np.sum(dt)
-        delta_z = abs(start[2] - goal[2])
-
+        delta_z = abs(si[2] - gi[2])
         while delta_z / delta_time > self.scaled_vz:
             delta_time = delta_time + 2 * math.pi / self.turn_speed
 
-        return sqrt((delta_time * self.v) ** 2 + (delta_z*self.lookup_res_z) ** 2)
+        dist = sqrt((delta_time * self.v_xy) ** 2 + (delta_z * self.lookup_res_z) ** 2)
+        return dist
 
     # TODO interpolate the full path in physical space using splines
     def interpolate_waypoints(self, waypoints):
@@ -141,9 +155,17 @@ class DubinsProblem:
 
     # TODO what about if we don't care about goal time?
     def at_goal_position(self, start, goal):
-        return np.array_equal(start, goal)
+        return np.all(np.less(np.abs(start.loc-goal.loc), self.goal_res))
 
+    def theta_2pi(self, theta):
+        return (theta + 2 * np.pi) % (2 * np.pi)
 
+    def reconstruct_path(self, n):
+        path = np.zeros((0, 5))
+        while n.parent is not None:
+            path = np.concatenate((path, self.to_loc(n.loc).reshape(1, -1)), axis=0)
+            n = n.parent
+        return np.flip(path, 0)
 
 
 

@@ -147,7 +147,7 @@ def dubins_path(sx, sy, syaw, ex, ey, eyaw, c):
     alpha = mod2pi(- theta)
     beta = mod2pi(deyaw - theta)
 
-    planners = [LSL, RSR, LSR, RSL] #, RLR, LRL] # RLR and LRL could cause instability
+    planners = [LSL, RSR, LSR, RSL, RLR, LRL] # RLR and LRL could cause instability
     #planners = [LSL, RSR, LSR, RSL]
     bcost, bt, bp, bq, bmode = np.Inf, np.Inf, np.Inf, np.Inf, None
 

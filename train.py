@@ -5,13 +5,13 @@ import pickle, random, math, sys
 
 from parameters import Parameters
 from process import get_min_time, timestamp, min_dist_to_airport, get_flights, get_min_max
-from planning.dubins_node import reconstruct_path, plot_path
+from planning.dubins_node3 import reconstruct_path, plot_path
 from planning.grid import Grid
 from planning.objective import DubinsObjective
 from planning.arastar import ARAStar
 from planning.astar import AStar
 import configparser
-
+from planning.dubins_problem import DubinsProblem
 
 
 def save_objective(obj):
@@ -69,6 +69,8 @@ def main():
     xyzbea_min, xyzbea_max = get_min_max(flight_summaries)
     resolution = np.array([x_res, y_res, z_res, theta_res])
 
+    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
+
     grid = Grid(xyzbea_min, xyzbea_max, resolution)
 
     # initialize cost with one pass through the data
@@ -92,45 +94,16 @@ def main():
         for flight in flight_summaries:
             xyzb = flight.loc_xyzbea
 
-            start = DubinsNode(xyzb[0, 0], xyzb[0, 1], xyzb[0, 2], xyzb[0, 3], 0)
-            goal = DubinsNode(xyzb[-1, 0], xyzb[-1, 1], xyzb[-1, 2], xyzb[-1, 3], 0)
-            node = ARAStar(start, goal, obj).plan(to)
+            start = np.array([xyzb[0, 0], xyzb[0, 1], xyzb[0, 2], xyzb[0, 3], 0]).flatten()
+            goal = np.array([xyzb[-1, 0], xyzb[-1, 1], xyzb[-1, 2], xyzb[-1, 3], 0]).flatten()
+            node = ARAStar(problem, start, goal, obj).plan(to)
 
             if node is not None:
-                planner_path = reconstruct_path(node)
+                planner_path = problem.reconstruct_path(node)
                 # planner_path = interp_path(planner_path, N)
                 planner_path = planner_path[0::5, :]
                 expert_path = interp_expert(flight, N)
-                print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
-
-                update_grid(grid, planner_path, 100.0)
-                update_grid(grid, expert_path, -100.0)
-                ind = ind + 1
-                if ind % 30 == 0:
-                    save_objective(obj)
-            else:
-                print('None')
-
-                # for iter in range(0, n_iters):
-
-                #     for flight in flight_summaries:
-                #         xyzb = flight.loc_xyzbea
-
-    for iter in range(0, n_iters):
-
-        for flight in flight_summaries:
-            xyzb = flight.loc_xyzbea
-
-            start = DubinsNode(xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0)
-            goal = DubinsNode(xyzb[-1,0], xyzb[-1,1], xyzb[-1,2], xyzb[-1,3] , 0)
-            node = ARAStar(start, goal, obj).plan(to)
-
-            if node is not None:
-                planner_path = reconstruct_path(node)
-                #planner_path = interp_path(planner_path, N)
-                planner_path = planner_path[0::5,:]
-                expert_path = interp_expert(flight, N)
-                print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
+                #print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
 
                 update_grid(grid, planner_path, 100.0)
                 update_grid(grid, expert_path, -100.0)

@@ -2,15 +2,18 @@ import numpy as np
 from planning.dubins_util import dubins_path
 import math
 from math import sqrt
+import configparser
+import sys
 
 inf = float("inf")
 
 
 class DubinsNode:
+
     v = 0.1
     delta_theta = 0.125 * math.pi / 100.0 * 5.0 * 1.5
-    thetas = [0, -1.0 * delta_theta, 1.0 * delta_theta]
-    zs = np.array([0.0, -1.0, 1.0]) / 1000.0 * 6.0
+    theta_prims = [0, -1.0 * delta_theta, 1.0 * delta_theta]
+    z_prims = np.array([0.0, -1.0, 1.0]) / 1000.0 * 6.0
     dt = 30.0  # 25.0
     ddt = 0.5
     dt_theta = dt
@@ -18,39 +21,6 @@ class DubinsNode:
 
     dist_tol = 0.05
     theta_tol = 0.05  # 0.0 * np.pi
-
-
-    # TODO make lookup tables here for the end of each primitive
-    # TODO move these params to config
-    dind_res_x = 1.0
-    dind_res_y = 1.0
-    dind_res_z = 1.0
-    dind_res_theta = 1.0
-    dind_res_time = 0.1
-
-    dind_num_theta = int(2 * math.pi / dind_res_theta)
-
-    # x,y will depend on theta primitive and current theta
-    dind_x = np.zeros((len(thetas), dind_num_theta))
-    dind_y = np.zeros((len(thetas), dind_num_theta))
-
-    # theta also depends on both because modulo 2pi
-    dind_theta = np.zeros((len(thetas), dind_num_theta))
-
-    # z depends only on the z primitive
-    dind_z = zs / dind_res_z
-
-    # t depends only on the time resolution
-    dind_time = dt_theta / dind_res_time
-
-    # TODO also make tables for trajectory interpolation
-
-    # TODO precompute the map of costs ( given airport location, and the location of the other airplanes)
-    # TODO store only node indices in Dubins nodes, and only convert to dense trajectories in physical space
-    # TODO shorten primitive length to be short enough for interpolation needed for cost computations
-    # TODO a function to interpolate the full path in physical space
-
-    ##############################################
 
     def __init__(self, x=None, y=None, z=None, theta=None, time=None, parent=None, dz=None, dtheta=None, dt=None):
 
@@ -147,7 +117,7 @@ class DubinsNode:
 
         delta_z = abs(self.z - goal.z)
 
-        while delta_z / delta_time > max(DubinsNode.zs):
+        while delta_z / delta_time > max(DubinsNode.z_prims):
             delta_time = delta_time + 2 * math.pi / turn_speed
 
         return sqrt((delta_time * DubinsNode.v) ** 2 + (delta_z) ** 2)  # * 2 # L2
@@ -158,8 +128,8 @@ class DubinsNode:
         neighbors = []
         dt = DubinsNode.dt
         dt_theta = DubinsNode.dt_theta
-        for dtheta in DubinsNode.thetas:
-            for dz in DubinsNode.zs:
+        for dtheta in DubinsNode.theta_prims:
+            for dz in DubinsNode.z_prims:
 
                 if dtheta != 0:
                     n = DubinsNode(None, None, None, None, None, self, [dz], [dtheta], [dt_theta])
@@ -245,7 +215,7 @@ class DubinsNode:
 
         dz = np.ones((3, 1)) * delta_z / delta_time
 
-        if np.abs(delta_z) / delta_time > max(DubinsNode.zs):
+        if np.abs(delta_z) / delta_time > max(DubinsNode.z_prims):
             return None
 
         return DubinsNode(goal.x, goal.y, goal.z, goal.theta, self.time + delta_time, self, dz, dtheta, dt)

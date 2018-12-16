@@ -5,23 +5,25 @@ inf = float("inf")
 
 class ARAStar:
 
-    def __init__(self, start, goal, obj):
-        self.start = start
-        self.goal = goal
+    def __init__(self, problem, start, goal, obj):
+        self.prob = problem
+        self.start = problem.new_node(start)
+        self.goal = problem.new_node(goal)
         self.obj = obj
 
         self.open_set = PriorityQueue() # set of open nodes
         self.closed_set = set()
         self.incons_set = set()
-        self.g = {} # cache cost 
+        self.g = {} # cache cost
         self.h = {} # cache heuristic
 
-        self.open_set.put(start, 0.0)
-        self.g[start] = 0
-        self.h[start] = self.start.heuristic(self.goal)
 
-        self.g[goal] = inf
-        self.h[goal] = 0
+        self.open_set.put(self.start, 0.0)
+        self.g[self.start] = 0
+        self.h[self.start] = self.prob.heuristic(self.start, self.goal)
+
+        self.g[self.goal] = inf
+        self.h[self.goal] = 0
 
         self.eps = 3.0
         self.eps_ = self.eps
@@ -40,7 +42,7 @@ class ARAStar:
             if time.time() > timeout or self.__improve_path(timeout) == 1:
                 break
             min_val = self.__update_sets()
-            self.eps_ = min(self.eps, self.g[self.goal_node] / min_val)
+            self.eps_ = min(self.eps, self.g[self.goal_node_hash] / min_val)
             #print(self.eps_)
         return self.goal_node
 
@@ -65,28 +67,27 @@ class ARAStar:
         return min_val
 
     def __improve_path(self, timeout):
-        num_open = 0
+
         while self.goal_node is None or self.__f_val(self.goal_node) > self.open_set.peek()[0]:
-            num_open = num_open + 1
-            if num_open % 100 == 0:
-                print(num_open)
+
             if time.time() > timeout: 
                 return 1
 
             s = self.open_set.get()
             self.closed_set.add(s)
 
-            for n in s.get_neighbors(self.goal): # check each neighbor
-
-                n_cost = n.cost_to_parent(self.obj) + self.g[s]
+            for (n, c) in self.prob.get_neighbors(s): # check each neighbor
+                n_cost = c + self.g[s]
 
                 if n_cost < inf and (n not in self.g or n_cost < self.g[n]):
 
-                    n_goal = n.at_goal_position(self.goal)
-                    if n_goal: self.goal_node = n
+                    n_goal = self.prob.at_goal_position(n, self.goal)
+                    if n_goal:
+                        self.goal_node = n
+                        self.goal_node_hash = n
 
                     self.g[n] = n_cost
-                    self.h[n] = n.heuristic(self.goal, n_goal)
+                    self.h[n] = self.prob.heuristic(n, self.goal)
 
                     if n not in self.closed_set:
                         self.open_set.put(n, self.__f_val(n))

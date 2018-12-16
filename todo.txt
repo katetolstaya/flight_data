@@ -19,3 +19,14 @@ IDEAS:
 1) Prune high cost trajectories (as if high cost regions are fake obstacles)
 2) Interpolate resulting trajectories using splines
 3) Refine splines by adding control points sampled using a Variational Autoencoder
+
+
+
+
+---------------------------------------------------
+
+1) Why does the delta_z seem to vary?
+2) tuning velocities, goal tolerances
+3) spline interpolation of the actual function
+
+4) COST MAP

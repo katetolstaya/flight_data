@@ -1,5 +1,5 @@
 import numpy as np
-from planning.dubins_node import DubinsNode
+from planning.dubins_node3 import DubinsNode
 from math import exp
 
 inf = float("inf")

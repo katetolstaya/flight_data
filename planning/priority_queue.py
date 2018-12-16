@@ -16,7 +16,7 @@ class PriorityQueue:
         return heapq.heappop(self.elements)[1]
 
     def peek(self):
-    	return heapq.nsmallest(1, self.elements)[0]
+        return heapq.nsmallest(1, self.elements)[0]
 
     def heapify(self):
         heapq.heapify(self.elements)

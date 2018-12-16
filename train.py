@@ -10,7 +10,7 @@ import configparser
 from planning.dubins_problem import DubinsProblem
 
 
-def save_objective(obj):
+def save_grid(obj):
     pickle.dump(obj, open('model/grid.pkl', 'wb'))
 
 
@@ -68,7 +68,7 @@ def main():
         path = flight_to_path(flight)
         update_grid(grid, path, -10.0)
     obj = DubinsObjective(config, grid)
-    save_objective(obj.grid.grid)
+    save_grid(obj.grid.grid)
 
     random.shuffle(flight_summaries)
     # random.seed(0)
@@ -100,11 +100,11 @@ def main():
                 update_grid(grid, expert_path, -100.0)
                 ind = ind + 1
                 if ind % 30 == 0:
-                    save_objective(obj)
+                    save_grid(obj.grid.grid)
             else:
                 print('Timeout')
             
-    save_objective(obj)
+    save_grid(obj)
 
 
 if __name__ == "__main__":

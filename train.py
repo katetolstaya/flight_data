@@ -101,8 +101,10 @@ def main():
                 ind = ind + 1
                 if ind % 30 == 0:
                     save_grid(obj.grid.grid)
+                break
             else:
                 print('Timeout')
+
             
     save_grid(obj)
 

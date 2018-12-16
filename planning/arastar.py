@@ -61,6 +61,7 @@ class ARAStar:
             temp_set.put(n, self.__f_val(n))
             min_val = min(min_val, self.g[n] + self.h[n])
         self.open_set.extend(temp_set)
+        self.open_set.heapify()
 
         self.closed_set = set()
         self.incons_set = set()

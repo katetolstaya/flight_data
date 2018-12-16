@@ -25,8 +25,13 @@ IDEAS:
 
 ---------------------------------------------------
 
-1) Why does the delta_z seem to vary?
-2) tuning velocities, goal tolerances
-3) spline interpolation of the actual function
+0) Test cost map
+0) save cost map "can't pickle instance method object"
 
-4) COST MAP
+
+1) Why does the delta_z seem to vary?
+
+
+3) spline interpolation of the actual function
+2) tuning velocities, goal tolerances
+5) add time constraints

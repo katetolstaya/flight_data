@@ -12,9 +12,6 @@ class DubinsProblem:
         # TODO shorten primitive length to be short enough for interpolation needed for cost computations
 
         self.config = config
-
-        coord_min[3] = 0
-        coord_max[3] = 2 * np.pi
         self.coord_min = coord_min
         self.coord_max = coord_max
 

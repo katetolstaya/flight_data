@@ -76,8 +76,8 @@ class ARAStar:
             s = self.open_set.get()
             self.closed_set.add(s)
 
-            for (n, c) in self.prob.get_neighbors(s): # check each neighbor
-                n_cost = c + self.g[s]
+            for (n, c) in self.prob.get_neighbors(s):  # check each neighbor
+                n_cost = c * (1.0 + self.obj.get_cost(n)) + self.g[s]
 
                 if n_cost < inf and (n not in self.g or n_cost < self.g[n]):
 

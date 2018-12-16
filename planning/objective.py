@@ -1,53 +1,45 @@
 import numpy as np
-from planning.dubins_node3 import DubinsNode
+from planning.dubins_node import DubinsNode
 from math import exp
 
 inf = float("inf")
 
 
 class DubinsObjective:
-    # TODO precompute the map of costs ( given airport location, and the location of the other airplanes)
 
-    def __init__(self, grid=None):
+    def __init__(self, config, grid=None):
         # self.others = others # a tuple of arrays for every other plane
         self.grid = grid
-        self.cost_type = sigmoid
-        self.dN = 10  # don't check all points for efficiency
+        self.cost_type = config['grid_cost_type']
+        self.w = float(config['grid_weight'])  # 0.01 #20.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
 
-        self.w = 1.0  # 0.01 #20.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
 
-        self.v = 0.1
-        self.N = 10
-
-        # TODO already have the cost grid, just have to resample more finely
-
-    # TODO get cost for index in grid (need to precompute this grid in the constructor) - should be huge
     def get_cost(self, ind):
-        return 0
+        if isinstance(ind, DubinsNode):
+            ind = ind.loc
 
-    # TODO - cost of each primitive is const, just need to add destination point cost from grid
+        if self.cost_type == 'sigmoid':
+            return self.w * sigmoid(self.grid.get(ind))
+        elif self.cost_type == 'exp':
+            return self.w * exp(self.grid.get(ind))
+        elif self.cost_type == 'llu':
+            return self.w * llu(self.grid.get(ind))
+        else:
+            raise NotImplementedError
+
+
     def integrate_path_cost(self, path):
-
-        last_node = DubinsNode(path[0, 0], path[0, 1], path[0, 2], path[0, 3], path[0, 4])
         cost = 0
-        N = 100
-        dN = 1  # 20 #max(int(np.size(path, 0)/N), 1)
-        for i in range(1, np.size(path, 0), dN):
+        for i in range(1, np.size(path, 0)):
 
             # below ground is out of bounds
             if path[i, 2] < -0.5 or cost == inf:
                 return inf
 
-            node = DubinsNode(path[i, 0], path[i, 1], path[i, 2], path[i, 3], path[i, 4])
-
             # integrate grid cost
             if self.grid is not None:
-                cost = cost + self.w * self.v * llu(self.grid.get(path[i, :])) * (node.time - last_node.time)
-
-            # integrate path length
-            cost = cost + last_node.euclid_distance(node)
-            last_node = node
-
+                euclid_dist = np.linalg.norm(path[i-1, 0:3] - path[i, 0:3])
+                cost = cost + (1.0 + self.get_cost(path[i, :])) * euclid_dist
         return cost
 
 

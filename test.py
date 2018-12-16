@@ -3,11 +3,13 @@ import pickle, random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from process import get_min_max_all
-from train import interp_expert, load_flight_data
+from train import flight_to_path, load_flight_data
 from planning.arastar import ARAStar
 from planning.astar import AStar
 from planning.dubins_problem import DubinsProblem
 import configparser
+from planning.grid import Grid
+from planning.objective import DubinsObjective
     
 
 
@@ -40,14 +42,17 @@ def main():
     xyzbea_min[4] = 0.0
     xyzbea_max[4] = 1.0
 
-    obj = pickle.load(open('model/objective_exp.pkl', 'rb'))
-    random.seed(1)
+    grid = Grid(config, xyzbea_min, xyzbea_max)
+    obj = DubinsObjective(config, grid)
+    obj.grid.grid = pickle.load(open('model/grid.pkl', 'rb'))
+    #obj = None
+    random.seed(2)
     random.shuffle(flight_summaries)
 
     to = float(config['timeout'])
-    N = 100
-    print('Planning...')
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
+
+    print('Planning...')
     for flight in flight_summaries:
         xyzb = flight.loc_xyzbea
         start = np.array([xyzb[0,0], xyzb[0,1], xyzb[0,2], xyzb[0,3], 0]).flatten()
@@ -56,7 +61,7 @@ def main():
         if node is not None:
             planner_path = problem.reconstruct_path(node)
             planner_path = planner_path[0::5, :] #interp_path(planner_path, N)
-            expert_path = interp_expert(flight, N)
+            expert_path = flight_to_path(flight)
             #print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
             plot_planner_expert(planner_path, expert_path)
         else:

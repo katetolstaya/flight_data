@@ -5,7 +5,7 @@ inf = float("inf")
 
 class ARAStar:
 
-    def __init__(self, problem, start, goal, obj):
+    def __init__(self, problem, start, goal, obj=None):
         self.prob = problem
         self.start = problem.new_node(start)
         self.goal = problem.new_node(goal)
@@ -77,7 +77,9 @@ class ARAStar:
             self.closed_set.add(s)
 
             for (n, c) in self.prob.get_neighbors(s):  # check each neighbor
-                n_cost = c * (1.0 + self.obj.get_cost(n)) + self.g[s]
+                if self.obj is not None:
+                    c = c * (1.0 + self.obj.get_cost(n))
+                n_cost = c + self.g[s]
 
                 if n_cost < inf and (n not in self.g or n_cost < self.g[n]):
 

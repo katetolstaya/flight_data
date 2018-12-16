@@ -11,7 +11,7 @@ from planning.dubins_problem import DubinsProblem
 
 
 def save_objective(obj):
-    pickle.dump(obj, open('model/objective_exp.pkl', 'wb'))
+    pickle.dump(obj, open('model/grid.pkl', 'wb'))
 
 
 def interp_expert(flight, N):
@@ -68,7 +68,7 @@ def main():
         path = flight_to_path(flight)
         update_grid(grid, path, -10.0)
     obj = DubinsObjective(config, grid)
-    #save_objective(obj)
+    save_objective(obj.grid.grid)
 
     random.shuffle(flight_summaries)
     # random.seed(0)
@@ -102,7 +102,7 @@ def main():
                 if ind % 30 == 0:
                     save_objective(obj)
             else:
-                print('None')
+                print('Timeout')
             
     save_objective(obj)
 

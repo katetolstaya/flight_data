@@ -8,6 +8,7 @@ from planning.arastar import ARAStar
 from planning.astar import AStar
 import configparser
 from planning.dubins_problem import DubinsProblem
+from planning.dubins_util import zero_to_2pi
 
 
 def save_grid(obj):
@@ -27,7 +28,14 @@ def flight_to_path(flight):
 def update_grid(grid, path, coeff):
     M = path.shape[0]
     for i in range(0, M):
-        grid.set(path[i, 0:4], grid.get(path[i, 0:4]) + coeff * 1.0 / M)
+
+        noise = np.random.normal(0, 0.5, size=(4, ))
+        noise[2] = 0.1 * noise[2]
+        noise[3] = 0.1 * noise[3]
+        temp = path[i, 0:4] + noise
+        temp[3] = zero_to_2pi(temp[3])
+        #grid.update(temp, coeff * 1.0 / M)
+        grid.set(temp, grid.get(temp) + coeff * 1.0 / M)
 
 
 def load_flight_data():
@@ -64,9 +72,10 @@ def main():
     grid = Grid(config, xyzbea_min, xyzbea_max)
 
     # initialize cost with one pass through the data
-    for flight in flight_summaries:
-        path = flight_to_path(flight)
-        update_grid(grid, path, -10.0)
+    for n in range(0, n_iters):
+        for flight in flight_summaries:
+            path = flight_to_path(flight)
+            update_grid(grid, path, -1000.0)
     obj = DubinsObjective(config, grid)
     save_grid(obj.grid.grid)
 
@@ -106,7 +115,7 @@ def main():
                 print('Timeout')
 
             
-    save_grid(obj)
+    save_grid(obj.grid.grid)
 
 
 if __name__ == "__main__":

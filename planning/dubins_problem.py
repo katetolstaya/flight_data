@@ -1,9 +1,13 @@
 import numpy as np
 import math
 from math import sqrt
-from planning.dubins_util import dubins_path
+from planning.dubins_util import dubins_path, zero_to_2pi
 from dubins_node import DubinsNode
 inf = float("inf")
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 
 class DubinsProblem:
 
@@ -82,19 +86,25 @@ class DubinsProblem:
                 for t in range(0, int(self.dt / self.ddt)):
                     dx = dx + self.ddt * self.v_xy * math.cos(theta)
                     dy = dy + self.ddt * self.v_xy * math.sin(theta)
-                    theta = self.theta_2pi(theta + self.ddt * self.ps_theta[i])
+                    theta = zero_to_2pi(theta + self.ddt * self.ps_theta[i])
 
                 self.lookup_delta_x[i, j] = int(dx / self.lookup_res_xy)
                 self.lookup_delta_y[i, j] = int(dy / self.lookup_res_xy)
                 self.lookup_theta[i, j] = int(theta / self.lookup_res_theta)
 
-        self.bc = self.curvature * self.lookup_res_xy  # convert curvature from world to indices - should be right
-        self.turn_speed = self.curvature * self.v_xy  # turn speed dtheta / dt is constant
-        self.scaled_v = self.bc * self.v_xy / self.lookup_res_xy # TODO check this!!
+        self.bc = self.curvature * self.lookup_res_xy * 1.1   # convert curvature from world to indices - should be right
+        self.recip_bc = 1.0 / self.bc
+        #self.turn_speed = self.curvature * self.v_xy  # turn speed dtheta / dt is constant
+        self.scaled_vxy = self.v_xy / self.lookup_res_xy  # TODO check this!!
         self.scaled_vz = self.max_ps_z / self.lookup_res_z
 
+        self.recip_turn_speed = 1.0 / self.v_theta
+        self.recip_scaled_vxy = 1.0 / self.scaled_vxy
+
+        self.full_turn_time = 2 * math.pi / self.v_theta
+
     def to_ind(self, loc):
-        loc[3] = self.theta_2pi(loc[3])
+        loc[3] = zero_to_2pi(loc[3])
         return ((loc - self.coord_min) / self.lookup_res).astype(int)
 
     def to_loc(self, ind):
@@ -114,7 +124,7 @@ class DubinsProblem:
                 neigh_loc[2] = parent[2] + self.lookup_delta_z[dzi]
                 neigh_loc[3] = self.lookup_theta[dti, parent[3]]
                 neigh_loc[4] = parent[4] #+ self.delta_time
-                if neigh_loc.min() >= 0:  # in bounds
+                if np.all(neigh_loc >= 0):  # in bounds
                     neighbors.append((self.new_node(neigh_loc, parent_node), self.lookup_prim_cost[dzi]))
         return neighbors
 
@@ -124,26 +134,40 @@ class DubinsProblem:
         return DubinsNode(loc, self.hash_coeffs, parent_node)
 
     def heuristic(self, start_node, end_node):
+        # if np.all(np.less(np.abs(start_node.loc[0:3]-end_node.loc[0:3]), 3*self.goal_res[0:3])):
+        #     min_cost = inf
+        #     for n in range(0, 10):
+        #         new_end = end_node.loc + np.random.uniform(low=-self.goal_res, high=self.goal_res)
+        #         min_cost = min(min_cost, self.dubins_distance(start_node.loc, new_end))
+        #
+        #         #min_cost = min(min_cost, self.dubins_distance(start_node.loc, end_node.loc, self.bc * (1+(1.0*np.random.random()))))
+        #     return min_cost
+        # else:
         return self.dubins_distance(start_node.loc, end_node.loc)
 
-    def dubins_distance(self, si, gi):
-        _, bt, bp, bq, bmode = dubins_path(si[0], si[1], self.to_angle(si[3]), gi[0], gi[1], self.to_angle(gi[3]), self.bc)
+    def dubins_distance(self, si, gi, bc=None):
+        if bc is None:
+            bc = self.bc
+
+        _, bt, bp, bq, bmode = dubins_path(si[0], si[1], self.to_angle(si[3]), gi[0], gi[1], self.to_angle(gi[3]), bc)
         tpq = [bt, bp, bq]
         delta_time = 0
 
         for i in range(0, 3):
-            if bmode[i] == "L":
-                delta_time = delta_time + tpq[i] / self.turn_speed  # turn speed const
-            elif bmode[i] == "R":
-                delta_time = delta_time + tpq[i] / self.turn_speed  # turn speed is const
-            elif bmode[i] == "S":
-                delta_time = delta_time + tpq[i] / self.scaled_v
+            if bmode[i] == 'L':
+                delta_time = delta_time + tpq[i] * self.recip_turn_speed  # turn speed const
+            elif bmode[i] == 'R':
+                delta_time = delta_time + tpq[i] * self.recip_turn_speed  # turn speed is const
+            elif bmode[i] == 'S':
+                delta_time = delta_time + tpq[i] * self.recip_bc * self.recip_scaled_vxy
 
         delta_z = abs(si[2] - gi[2])
-        while delta_z / delta_time > self.scaled_vz:
-            delta_time = delta_time + 2 * math.pi / self.turn_speed
+        while delta_z > self.scaled_vz * delta_time:
+            delta_time = delta_time + self.full_turn_time
 
-        dist = sqrt((delta_time * self.v_xy) ** 2 + (delta_z * self.lookup_res_z) ** 2)
+        delta_dist = delta_time * self.v_xy
+        delta_z = delta_z * self.lookup_res_z
+        dist = sqrt(delta_dist * delta_dist + delta_z * delta_z)
         return dist
 
     # TODO interpolate the full path in physical space using splines
@@ -154,8 +178,6 @@ class DubinsProblem:
     def at_goal_position(self, start, goal):
         return np.all(np.less(np.abs(start.loc-goal.loc), self.goal_res))
 
-    def theta_2pi(self, theta):
-        return (theta + 2 * np.pi) % (2 * np.pi)
 
     def reconstruct_path(self, n):
         path = np.zeros((0, 5))
@@ -164,6 +186,33 @@ class DubinsProblem:
             n = n.parent
         return np.flip(path, 0)
 
+
+    def initialize_plot(self, start, goal):
+        plt.ion()
+        # self.fig = plt.figure()
+        # self.ax = self.fig.gca(projection='3d')
+
+        self.fig, self.ax = plt.subplots()
+
+        start_loc = self.to_loc(start.loc)
+        goal_loc = self.to_loc(goal.loc)
+
+        self.ax.plot([goal_loc[0]], [goal_loc[1]], 'rx')
+
+        self.x_plot = [start_loc[0]]
+        self.y_plot = [start_loc[1]]
+        self.line, = self.ax.plot(self.x_plot, self.y_plot, 'go')
+
+    def update_plot(self, s):
+        loc = self.to_loc(s.loc)
+        self.x_plot.append(loc[0])
+        self.y_plot.append(loc[1])
+
+        self.line.set_data(self.x_plot, self.y_plot)
+        self.ax.relim()
+        self.ax.autoscale_view()
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
 
 
 

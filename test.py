@@ -46,7 +46,7 @@ def main():
     obj = DubinsObjective(config, grid)
     obj.grid.grid = pickle.load(open('model/grid.pkl', 'rb'))
     #obj = None
-    random.seed(2)
+    #random.seed(4)
     random.shuffle(flight_summaries)
 
     to = float(config['timeout'])
@@ -60,7 +60,7 @@ def main():
         node = ARAStar(problem, start, goal, obj).plan(to)
         if node is not None:
             planner_path = problem.reconstruct_path(node)
-            planner_path = planner_path[0::5, :] #interp_path(planner_path, N)
+            #planner_path = planner_path[0::5, :] #interp_path(planner_path, N)
             expert_path = flight_to_path(flight)
             #print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
             plot_planner_expert(planner_path, expert_path)

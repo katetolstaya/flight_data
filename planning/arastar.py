@@ -17,7 +17,6 @@ class ARAStar:
         self.g = {} # cache cost
         self.h = {} # cache heuristic
 
-
         self.open_set.put(self.start, 0.0)
         self.g[self.start] = 0
         self.h[self.start] = self.prob.heuristic(self.start, self.goal)
@@ -25,11 +24,16 @@ class ARAStar:
         self.g[self.goal] = inf
         self.h[self.goal] = 0
 
-        self.eps = 3.0
+        self.eps = 5.0
         self.eps_ = self.eps
-        self.mult_eps = 0.9
+        self.mult_eps = 0.8
 
         self.goal_node = None # result
+
+        self.animate_plot = False
+
+        if self.animate_plot:
+            self.prob.initialize_plot(self.start, self.goal)
 
 
     def plan(self, to=30.0):
@@ -42,8 +46,8 @@ class ARAStar:
             if time.time() > timeout or self.__improve_path(timeout) == 1:
                 break
             min_val = self.__update_sets()
-            self.eps_ = min(self.eps, self.g[self.goal_node_hash] / min_val)
-            #print(self.eps_)
+            self.eps_ = min(self.eps, self.g[self.goal_node] / min_val)
+            print(self.eps_)
         return self.goal_node
 
     def __update_sets(self):
@@ -77,6 +81,10 @@ class ARAStar:
             s = self.open_set.get()
             self.closed_set.add(s)
 
+            if self.animate_plot:
+                self.prob.update_plot(s)
+
+
             for (n, c) in self.prob.get_neighbors(s):  # check each neighbor
                 if self.obj is not None:
                     c = c * (1.0 + self.obj.get_cost(n))
@@ -87,7 +95,6 @@ class ARAStar:
                     n_goal = self.prob.at_goal_position(n, self.goal)
                     if n_goal:
                         self.goal_node = n
-                        self.goal_node_hash = n
 
                     self.g[n] = n_cost
                     self.h[n] = self.prob.heuristic(n, self.goal)

@@ -17,11 +17,14 @@ class FlightSummary(object):
         self.time = np.array([timestamp(t) - params.start_t for t in flight.time])[in_range]
         self.T = len(self.time)
 
-        lat = np.array(flight.latitude)[in_range]
-        lon = np.array(flight.longitude)[in_range]
-        alt = np.array(flight.altitude)[in_range]
-        next_lat = np.array(flight.next_latitude)[in_range]
-        next_lon = np.array(flight.next_longtiude)[in_range]
+        inds = np.argsort(self.time)
+        self.time = self.time[inds]
+
+        lat = np.array(flight.latitude)[in_range][inds]
+        lon = np.array(flight.longitude)[in_range][inds]
+        alt = np.array(flight.altitude)[in_range][inds]
+        # next_lat = np.array(flight.next_latitude)[in_range]
+        # next_lon = np.array(flight.next_longtiude)[in_range]
 
         self.loc_xyzbea = np.zeros((self.T, 4))
 
@@ -30,7 +33,7 @@ class FlightSummary(object):
             if k == self.T - 1: # or k == self.T - 2:  # last bearing would be wrong otherwise
                 bea = self.loc_xyzbea[k-1, 3]
             else:
-                #bea = bearing(lat[k], lon[k], next_lat[k], next_lon[k])
+                # bea = bearing(lat[k], lon[k], next_lat[k], next_lon[k])
                 bea = bearing(lat[k], lon[k], lat[k+1], lon[k+1])
 
             loc_lla = np.array([flight.ref, lat[k], lon[k], alt[k], self.time[k], bea])

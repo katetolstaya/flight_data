@@ -16,25 +16,24 @@ def save_grid(obj):
 
 
 def interp_expert(flight, N):
-    path = np.concatenate((flight.loc_xyzbea, flight.time.reshape((-1,1))), axis=1)
+    path = np.concatenate((flight.loc_xyzbea, flight.time.reshape((-1, 1))), axis=1)
     return path
 
 
 def flight_to_path(flight):
-    path = np.concatenate((flight.loc_xyzbea, flight.time.reshape((-1,1))), axis=1)
+    path = np.concatenate((flight.loc_xyzbea, flight.time.reshape((-1, 1))), axis=1)
     return path
 
 
 def update_grid(grid, path, coeff):
     M = path.shape[0]
     for i in range(0, M):
-
-        noise = np.random.normal(0, 0.5, size=(4, ))
+        noise = np.random.normal(0, 0.5, size=(4,))
         noise[2] = 0.1 * noise[2]
         noise[3] = 0.1 * noise[3]
         temp = path[i, 0:4] + noise
         temp[3] = zero_to_2pi(temp[3])
-        #grid.update(temp, coeff * 1.0 / M)
+        # grid.update(temp, coeff * 1.0 / M)
         grid.set(temp, grid.get(temp) + coeff * 1.0 / M)
 
 
@@ -51,7 +50,6 @@ def load_flight_data():
 
 
 def main():
-
     config_file = 'params.cfg'
     config = configparser.ConfigParser()
     config.read(config_file)
@@ -67,7 +65,6 @@ def main():
 
     xyzbea_min[4] = 0.0
     xyzbea_max[4] = 1.0
-
 
     grid = Grid(config, xyzbea_min, xyzbea_max)
 
@@ -114,7 +111,6 @@ def main():
             else:
                 print('Timeout')
 
-            
     save_grid(obj.grid.grid)
 
 

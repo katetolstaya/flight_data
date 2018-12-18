@@ -3,10 +3,12 @@ import math
 from math import sqrt
 from planning.dubins_util import dubins_path, zero_to_2pi
 from dubins_node import DubinsNode
+
 inf = float("inf")
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.interpolate import UnivariateSpline
 
 
 class DubinsProblem:
@@ -31,8 +33,8 @@ class DubinsProblem:
         self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z
 
         self.max_ps_z = max(self.ps_z)
-        self.num_ps_theta = 3 #len(self.ps_theta)
-        self.num_ps_z = 3 #len(self.ps_z)
+        self.num_ps_theta = 3  # len(self.ps_theta)
+        self.num_ps_z = 3  # len(self.ps_z)
 
         self.lookup_res_xy = float(config['dind_res_xy'])
         self.lookup_res_z = float(config['dind_res_z'])
@@ -65,8 +67,8 @@ class DubinsProblem:
         # z depends only on the z primitive
         self.lookup_delta_z = (self.dt * self.ps_z / self.lookup_res_z).astype(int)
 
-        self.lookup_prim_cost = np.sqrt(np.power(self.ps_z * self.dt, 2) + (self.v_xy * self.dt)**2)
-        self.lookup_prim_cost = np.sqrt(np.power(self.ps_z * self.dt, 2) + (self.v_xy * self.dt)**2)
+        self.lookup_prim_cost = np.sqrt(np.power(self.ps_z * self.dt, 2) + (self.v_xy * self.dt) ** 2)
+        self.lookup_prim_cost = np.sqrt(np.power(self.ps_z * self.dt, 2) + (self.v_xy * self.dt) ** 2)
 
         # t depends only on the time resolution
         self.delta_time = int(self.dt / self.lookup_res_time)
@@ -80,7 +82,7 @@ class DubinsProblem:
 
         for i in range(0, self.num_ps_theta):
             for j in range(0, self.lookup_num_thetas):
-                theta = float(j) * self.lookup_res_theta #+ self.coord_min[3]
+                theta = float(j) * self.lookup_res_theta  # + self.coord_min[3]
                 dx = 0.0
                 dy = 0.0
                 for t in range(0, int(self.dt / self.ddt)):
@@ -92,9 +94,9 @@ class DubinsProblem:
                 self.lookup_delta_y[i, j] = int(dy / self.lookup_res_xy)
                 self.lookup_theta[i, j] = int(theta / self.lookup_res_theta)
 
-        self.bc = self.curvature * self.lookup_res_xy * 1.1   # convert curvature from world to indices - should be right
+        self.bc = self.curvature * self.lookup_res_xy * 1.1  # convert curvature from world to indices - should be right
         self.recip_bc = 1.0 / self.bc
-        #self.turn_speed = self.curvature * self.v_xy  # turn speed dtheta / dt is constant
+        # self.turn_speed = self.curvature * self.v_xy  # turn speed dtheta / dt is constant
         self.scaled_vxy = self.v_xy / self.lookup_res_xy  # TODO check this!!
         self.scaled_vz = self.max_ps_z / self.lookup_res_z
 
@@ -123,7 +125,7 @@ class DubinsProblem:
                 neigh_loc[1] = parent[1] + self.lookup_delta_y[dti, parent[3]]
                 neigh_loc[2] = parent[2] + self.lookup_delta_z[dzi]
                 neigh_loc[3] = self.lookup_theta[dti, parent[3]]
-                neigh_loc[4] = parent[4] #+ self.delta_time
+                neigh_loc[4] = parent[4] + self.delta_time
                 if np.all(neigh_loc >= 0):  # in bounds
                     neighbors.append((self.new_node(neigh_loc, parent_node), self.lookup_prim_cost[dzi]))
         return neighbors
@@ -170,14 +172,8 @@ class DubinsProblem:
         dist = sqrt(delta_dist * delta_dist + delta_z * delta_z)
         return dist
 
-    # TODO interpolate the full path in physical space using splines
-    def interpolate_waypoints(self, waypoints):
-        return None
-
-    # TODO what about if we don't care about goal time?
     def at_goal_position(self, start, goal):
-        return np.all(np.less(np.abs(start.loc-goal.loc), self.goal_res))
-
+        return np.all(np.less(np.abs(start.loc[0:4] - goal.loc[0:4]), self.goal_res[0:4]))
 
     def reconstruct_path(self, n):
         path = np.zeros((0, 5))
@@ -185,7 +181,6 @@ class DubinsProblem:
             path = np.concatenate((path, self.to_loc(n.loc).reshape(1, -1)), axis=0)
             n = n.parent
         return np.flip(path, 0)
-
 
     def initialize_plot(self, start, goal):
         plt.ion()
@@ -214,15 +209,12 @@ class DubinsProblem:
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
+    # TODO interpolate the full path in physical space using splines
+    def smoothing_spline(self, path, s):
+        ts = path[:, 4]
+        s_x = UnivariateSpline(ts, path[:, 0], s=s)
+        s_y = UnivariateSpline(ts, path[:, 1], s=s)
+        s_z = UnivariateSpline(ts, path[:, 2], s=s)
 
-
-
-
-
-
-
-
-
-
-
-
+        smoothed_path = np.stack((s_x(ts).reshape(-1, 1), s_y(ts).reshape(-1, 1), s_z(ts).reshape(-1, 1)), axis=1)
+        return smoothed_path

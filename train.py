@@ -48,6 +48,7 @@ def main():
         planner = ARAStar
     else:
         raise NotImplementedError
+    
     to = float(config['timeout'])
     n_iters = int(config['num_iterations'])
     n_samples = int(config['num_samples'])

@@ -35,20 +35,24 @@ def load_flight_data():
     return flight_summaries
 
 
-def main():
-    # read in parameters
-    config_file = 'params.cfg'
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    config = config['plan1']
-    planner_type = config['planner_type']
+def make_planner(planner_type):
     if planner_type == 'AStar':
         planner = AStar
     elif planner_type == 'ARAStar':
         planner = ARAStar
     else:
         raise NotImplementedError
-    
+    return planner
+
+
+def main():
+    # read in parameters
+    config_file = 'params.cfg'
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    config = config['plan1']
+    planner = make_planner(config['planner_type'])
+
     to = float(config['timeout'])
     n_iters = int(config['num_iterations'])
     n_samples = int(config['num_samples'])
@@ -66,15 +70,15 @@ def main():
     grid = Grid(config, xyzbea_min, xyzbea_max)
 
     # initialize cost with one pass through the data
-    for n in range(0, n_iters):
-        for flight in flight_summaries:
 
-            # can't interpolate paths with len < 4
-            if flight.get_path_len() < 4:
-                continue
+    for flight in flight_summaries:
+        # can't interpolate paths with len < 4
+        if flight.get_path_len() < 4:
+            continue
 
-            path = flight.to_path()
-            dense_path = DubinsProblem.resample_path(path, 3, n_samples)
+        path = flight.to_path()
+        dense_path = DubinsProblem.resample_path(path, 3, n_samples)
+        for n in range(0, n_iters):
             update_grid(grid, dense_path, -1000.0)
 
     obj = DubinsObjective(config, grid)

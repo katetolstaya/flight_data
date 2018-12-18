@@ -214,8 +214,8 @@ def get_min_max(flight_summaries):
         xyzbea_max = np.maximum(xyzbea_max, np.amax(flight.loc_xyzbea, axis=0))
         xyzbea_min = np.minimum(xyzbea_min, np.amin(flight.loc_xyzbea, axis=0))
 
-    xyzbea_max[0, 3] = 2*math.pi
-    xyzbea_min[0, 3] = 0
+    xyzbea_max[0, 3] = 1.0 * math.pi
+    xyzbea_min[0, 3] = -1.0 * math.pi
 
     return xyzbea_min, xyzbea_max
 
@@ -234,8 +234,8 @@ def get_min_max_all(flight_summaries):
         max_time = np.minimum(max_time, np.max(flight.time))
 
     # set angle range
-    xyzbea_max[0, 3] = 2 * math.pi
-    xyzbea_min[0, 3] = 0
+    xyzbea_max[0, 3] = 1.0 * math.pi
+    xyzbea_min[0, 3] = -1.0 * math.pi
 
     # set time range
     xyzbea_min = np.append(xyzbea_min, [min_time])

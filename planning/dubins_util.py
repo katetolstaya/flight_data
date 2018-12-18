@@ -9,6 +9,11 @@ from math import cos, sin, atan2, floor, sqrt, acos
 inf = float('inf')
 pi = math.pi
 
+
+def neg_pi_to_pi(theta):
+    return (theta + pi) % (2 * pi) - pi
+
+
 def zero_to_2pi(theta):
     return (theta + 2 * pi) % (2 * pi)
 

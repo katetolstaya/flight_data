@@ -1,7 +1,7 @@
 import numpy as np
 import math
 from math import sqrt
-from planning.dubins_util import dubins_path, zero_to_2pi
+from planning.dubins_util import dubins_path, neg_pi_to_pi
 from planning.dubins_node import DubinsNode
 from scipy.interpolate import UnivariateSpline
 import matplotlib.pyplot as plt
@@ -78,17 +78,17 @@ class DubinsProblem:
 
         for i in range(0, self.num_ps_theta):
             for j in range(0, self.lookup_num_thetas):
-                theta = float(j) * self.lookup_res_theta  # + self.coord_min[3]
+                theta = float(j) * self.lookup_res_theta + self.coord_min[3]
                 dx = 0.0
                 dy = 0.0
                 for t in range(0, int(self.dt / self.ddt)):
                     dx = dx + self.ddt * self.v_xy * math.cos(theta)
                     dy = dy + self.ddt * self.v_xy * math.sin(theta)
-                    theta = zero_to_2pi(theta + self.ddt * self.ps_theta[i])
+                    theta = neg_pi_to_pi(theta + self.ddt * self.ps_theta[i])
 
                 self.lookup_delta_x[i, j] = int(dx / self.lookup_res_xy)
                 self.lookup_delta_y[i, j] = int(dy / self.lookup_res_xy)
-                self.lookup_theta[i, j] = int(theta / self.lookup_res_theta)
+                self.lookup_theta[i, j] = int((theta - self.coord_min[3]) / self.lookup_res_theta)
 
         self.bc = self.curvature * self.lookup_res_xy * 1.1  # convert curvature from world to indices - should be right
         self.recip_bc = 1.0 / self.bc
@@ -102,7 +102,7 @@ class DubinsProblem:
         self.full_turn_time = 2 * math.pi / self.v_theta
 
     def to_ind(self, loc):
-        loc[3] = zero_to_2pi(loc[3])
+        loc[3] = neg_pi_to_pi(loc[3])
         return ((loc - self.coord_min) / self.lookup_res).astype(int)
 
     def to_loc(self, ind):

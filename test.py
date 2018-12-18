@@ -1,15 +1,13 @@
 import numpy as np
-import pickle, random
+import configparser
+import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from process import get_min_max_all
-from train import load_flight_data
-from planning.arastar import ARAStar
-from planning.astar import AStar
+from train import load_flight_data, make_planner
 from planning.dubins_problem import DubinsProblem
-import configparser
-from planning.grid import Grid
 from planning.objective import DubinsObjective
+from planning.grid import Grid
 
 
 def plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline):
@@ -47,13 +45,7 @@ def main():
     config = config['plan1']
     to = float(config['timeout'])
     seed = int(config['random_seed'])
-    planner_type = config['planner_type']
-    if planner_type == 'AStar':
-        planner = AStar
-    elif planner_type == 'ARAStar':
-        planner = ARAStar
-    else:
-        raise NotImplementedError
+    planner = make_planner(config['planner_type'])
 
     if seed >= 0:
         random.seed(seed)

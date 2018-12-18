@@ -8,7 +8,7 @@ from planning.arastar import ARAStar
 from planning.astar import AStar
 import configparser
 from planning.dubins_problem import DubinsProblem
-from planning.dubins_util import zero_to_2pi
+from planning.dubins_util import neg_pi_to_pi
 
 
 def update_grid(grid, path, coeff):
@@ -18,7 +18,7 @@ def update_grid(grid, path, coeff):
         noise[2] = 0.1 * noise[2]
         noise[3] = 0.1 * noise[3]
         temp = path[i, 0:4] + noise
-        temp[3] = zero_to_2pi(temp[3])
+        temp[3] = neg_pi_to_pi(temp[3])
         grid.set(temp, grid.get(temp) + coeff * 1.0 / n_path_points)
         # grid.update(temp, coeff * 1.0 / M)
 
@@ -66,11 +66,9 @@ def main():
 
     # set up cost grid
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
-    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
     grid = Grid(config, xyzbea_min, xyzbea_max)
 
     # initialize cost with one pass through the data
-
     for flight in flight_summaries:
         # can't interpolate paths with len < 4
         if flight.get_path_len() < 4:
@@ -80,7 +78,9 @@ def main():
         dense_path = DubinsProblem.resample_path(path, 3, n_samples)
         for n in range(0, n_iters):
             update_grid(grid, dense_path, -1000.0)
+            #update_grid(grid, path, -1000.0)
 
+    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
     obj = DubinsObjective(config, grid)
     obj.grid.save_grid()
 
@@ -99,6 +99,11 @@ def main():
             if node is not None:
                 planner_path = problem.reconstruct_path(node)
                 expert_path = flight.to_path()
+                # print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
+                #
+                # update_grid(grid, expert_path, -100.0)
+                # update_grid(grid, planner_path, 100.0)
+
                 expert_dense_path = DubinsProblem.resample_path(expert_path, 3, n_samples)
                 planner_dense_path = DubinsProblem.resample_path(planner_path, 3, n_samples)
 

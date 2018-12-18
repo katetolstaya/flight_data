@@ -65,7 +65,8 @@ def main():
 
     print('Planning...')
     for flight in flight_summaries:
-
+        if flight.get_path_len() < 4:
+            continue
         start, goal = flight.get_start_goal()
         node = planner(problem, start, goal, obj).plan(to)
         if node is not None:

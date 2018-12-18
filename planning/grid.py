@@ -1,6 +1,5 @@
 import numpy as np
 from math import ceil, floor
-import pickle
 # from sklearn.gaussian_process.kernels import RBF
 
 
@@ -84,12 +83,12 @@ class Grid:
     def load_grid(self, fname=None):
         if fname is None:
             fname = self.fname
-        pickle.load(open(fname, 'rb'))
+        self.grid = np.load(fname)
 
     def save_grid(self, fname=None):
         if fname is None:
             fname = self.fname
-        pickle.dump(self.grid, open(fname, 'wb'))
+        np.save(fname, self.grid)
 
     # def update(self, x, u):
     #     try:

@@ -78,7 +78,7 @@ class DubinsProblem:
 
         for i in range(0, self.num_ps_theta):
             for j in range(0, self.lookup_num_thetas):
-                theta = float(j) * self.lookup_res_theta + self.coord_min[3]
+                theta = self.to_angle(j)
                 dx = 0.0
                 dy = 0.0
                 for t in range(0, int(self.dt / self.ddt)):
@@ -121,7 +121,7 @@ class DubinsProblem:
                 neigh_loc[1] = parent[1] + self.lookup_delta_y[dti, parent[3]]
                 neigh_loc[2] = parent[2] + self.lookup_delta_z[dzi]
                 neigh_loc[3] = self.lookup_theta[dti, parent[3]]
-                neigh_loc[4] = parent[4] + self.delta_time
+                neigh_loc[4] = parent[4] + self.delta_time # TODO
                 if np.all(neigh_loc >= 0):  # in bounds
                     neighbors.append((self.new_node(neigh_loc, parent_node), self.lookup_prim_cost[dzi]))
         return neighbors

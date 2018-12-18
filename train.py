@@ -12,15 +12,15 @@ from planning.dubins_util import zero_to_2pi
 
 
 def update_grid(grid, path, coeff):
-    M = path.shape[0]
-    for i in range(0, M):
+    n_path_points = path.shape[0]
+    for i in range(0, n_path_points):
         noise = np.random.normal(0, 0.5, size=(4,))
         noise[2] = 0.1 * noise[2]
         noise[3] = 0.1 * noise[3]
         temp = path[i, 0:4] + noise
         temp[3] = zero_to_2pi(temp[3])
+        grid.set(temp, grid.get(temp) + coeff * 1.0 / n_path_points)
         # grid.update(temp, coeff * 1.0 / M)
-        grid.set(temp, grid.get(temp) + coeff * 1.0 / M)
 
 
 def load_flight_data():
@@ -41,7 +41,13 @@ def main():
     config = configparser.ConfigParser()
     config.read(config_file)
     config = config['plan1']
-
+    planner_type = config['planner_type']
+    if planner_type == 'AStar':
+        planner = AStar
+    elif planner_type == 'ARAStar':
+        planner = ARAStar
+    else:
+        raise NotImplementedError
     to = float(config['timeout'])
     n_iters = int(config['num_iterations'])
     n_samples = int(config['num_samples'])
@@ -83,7 +89,7 @@ def main():
                 continue
 
             start, goal = flight.get_start_goal()
-            node = ARAStar(problem, start, goal, obj).plan(to)
+            node = planner(problem, start, goal, obj).plan(to)
 
             if node is not None:
                 planner_path = problem.reconstruct_path(node)

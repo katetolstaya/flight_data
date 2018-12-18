@@ -1,37 +1,13 @@
-Problem:
-Planner is slow
-Motion primitives are too long (so trajectory looks wobbly) - would like to make them shorter, but this would slow down runtime even more
+TODO
 
-
-Possible solutions:
-Implement ARA*
-Plan in grid space, then fit splines
-Snap nodes to grid
-
-
-Set constant the weight of the potential cost function relative to the path length?
-
-Change the weight of path length in the heuristic.
-
-
-IDEAS:
-
-1) Prune high cost trajectories (as if high cost regions are fake obstacles)
-2) Interpolate resulting trajectories using splines
-3) Refine splines by adding control points sampled using a Variational Autoencoder
-
-
-
+Tune velocities and tolerances
+Add time constraints
+Take-offs
 
 ---------------------------------------------------
 
-0) Test cost map
-0) save cost map "can't pickle instance method object"
+New ideas:
 
+1) Prune high cost trajectories (as if high cost regions are fake obstacles)
+3) Refine splines by adding control points sampled using a Variational Autoencoder ( won't generalize to landing vs takeoff)
 
-1) Why does the delta_z seem to vary?
-
-
-3) spline interpolation of the actual function
-2) tuning velocities, goal tolerances
-5) add time constraints

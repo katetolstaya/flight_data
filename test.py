@@ -47,6 +47,14 @@ def main():
     config = config['plan1']
     to = float(config['timeout'])
     seed = int(config['random_seed'])
+    planner_type = config['planner_type']
+    if planner_type == 'AStar':
+        planner = AStar
+    elif planner_type == 'ARAStar':
+        planner = ARAStar
+    else:
+        raise NotImplementedError
+
     if seed >= 0:
         random.seed(seed)
 
@@ -67,7 +75,7 @@ def main():
     for flight in flight_summaries:
 
         start, goal = flight.get_start_goal()
-        node = ARAStar(problem, start, goal, obj).plan(to)
+        node = planner(problem, start, goal, obj).plan(to)
         if node is not None:
             planner_path = problem.reconstruct_path(node)
             expert_path = flight.to_path()

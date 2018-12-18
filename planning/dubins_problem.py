@@ -2,20 +2,16 @@ import numpy as np
 import math
 from math import sqrt
 from planning.dubins_util import dubins_path, zero_to_2pi
-from dubins_node import DubinsNode
+from planning.dubins_node import DubinsNode
+from scipy.interpolate import UnivariateSpline
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 inf = float("inf")
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from scipy.interpolate import UnivariateSpline
-
 
 class DubinsProblem:
-
     def __init__(self, config, coord_min, coord_max):
-
-        # TODO shorten primitive length to be short enough for interpolation needed for cost computations
 
         self.config = config
         self.coord_min = coord_min
@@ -97,7 +93,7 @@ class DubinsProblem:
         self.bc = self.curvature * self.lookup_res_xy * 1.1  # convert curvature from world to indices - should be right
         self.recip_bc = 1.0 / self.bc
         # self.turn_speed = self.curvature * self.v_xy  # turn speed dtheta / dt is constant
-        self.scaled_vxy = self.v_xy / self.lookup_res_xy  # TODO check this!!
+        self.scaled_vxy = self.v_xy / self.lookup_res_xy
         self.scaled_vz = self.max_ps_z / self.lookup_res_z
 
         self.recip_turn_speed = 1.0 / self.v_theta
@@ -172,6 +168,7 @@ class DubinsProblem:
         dist = sqrt(delta_dist * delta_dist + delta_z * delta_z)
         return dist
 
+    # TODO constrain airplane arrival time, will need to tune velocities
     def at_goal_position(self, start, goal):
         return np.all(np.less(np.abs(start.loc[0:4] - goal.loc[0:4]), self.goal_res[0:4]))
 
@@ -209,12 +206,25 @@ class DubinsProblem:
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
-    # TODO interpolate the full path in physical space using splines
-    def smoothing_spline(self, path, s):
-        ts = path[:, 4]
-        s_x = UnivariateSpline(ts, path[:, 0], s=s)
-        s_y = UnivariateSpline(ts, path[:, 1], s=s)
-        s_z = UnivariateSpline(ts, path[:, 2], s=s)
+    @staticmethod
+    def resample_path(path, s, n_ts=None):
 
-        smoothed_path = np.stack((s_x(ts).reshape(-1, 1), s_y(ts).reshape(-1, 1), s_z(ts).reshape(-1, 1)), axis=1)
+        if n_ts is None:
+            ts = path[:, 4]
+        else:
+            ts = np.linspace(start=path[0, 4], stop=path[-1, 4], num=n_ts)
+
+        s_x = UnivariateSpline(path[:, 4], path[:, 0], s=s)
+        s_y = UnivariateSpline(path[:, 4], path[:, 1], s=s)
+        s_z = UnivariateSpline(path[:, 4], path[:, 2], s=s)
+
+        # interpolate new x,y,z,bearing coordinates
+        xs = s_x(ts).reshape(-1, 1)
+        ys = s_y(ts).reshape(-1, 1)
+        zs = s_z(ts).reshape(-1, 1)
+        bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
+        bs = np.append(bs, [bs[-1]], axis=0)
+        ts = ts.reshape(-1, 1)
+
+        smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
         return smoothed_path

@@ -11,20 +11,6 @@ from planning.dubins_problem import DubinsProblem
 from planning.dubins_util import zero_to_2pi
 
 
-def save_grid(obj):
-    pickle.dump(obj, open('model/grid.pkl', 'wb'))
-
-
-def interp_expert(flight, N):
-    path = np.concatenate((flight.loc_xyzbea, flight.time.reshape((-1, 1))), axis=1)
-    return path
-
-
-def flight_to_path(flight):
-    path = np.concatenate((flight.loc_xyzbea, flight.time.reshape((-1, 1))), axis=1)
-    return path
-
-
 def update_grid(grid, path, coeff):
     M = path.shape[0]
     for i in range(0, M):
@@ -50,6 +36,7 @@ def load_flight_data():
 
 
 def main():
+    # read in parameters
     config_file = 'params.cfg'
     config = configparser.ConfigParser()
     config.read(config_file)
@@ -57,61 +44,66 @@ def main():
 
     to = float(config['timeout'])
     n_iters = int(config['num_iterations'])
+    n_samples = int(config['num_samples'])
+    seed = int(config['random_seed'])
+    if seed >= 0:
+        random.seed(seed)
 
+    # get plane data
     flight_summaries = load_flight_data()
+    random.shuffle(flight_summaries)
 
-    # set up grid
+    # set up cost grid
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
-
-    xyzbea_min[4] = 0.0
-    xyzbea_max[4] = 1.0
-
+    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
     grid = Grid(config, xyzbea_min, xyzbea_max)
 
     # initialize cost with one pass through the data
     for n in range(0, n_iters):
         for flight in flight_summaries:
-            path = flight_to_path(flight)
-            update_grid(grid, path, -1000.0)
+
+            # can't interpolate paths with len < 4
+            if flight.get_path_len() < 4:
+                continue
+
+            path = flight.to_path()
+            dense_path = DubinsProblem.resample_path(path, 3, n_samples)
+            update_grid(grid, dense_path, -1000.0)
+
     obj = DubinsObjective(config, grid)
-    save_grid(obj.grid.grid)
-
-    random.shuffle(flight_summaries)
-    # random.seed(0)
-
-    ind = 0
-
-    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
+    obj.grid.save_grid()
 
     print('Planning...')
-
+    ind = 0
     for i in range(0, n_iters):
 
         for flight in flight_summaries:
-            xyzb = flight.loc_xyzbea
-            # flight.time stores all the time info!
-            # TODO use this to constrain airplane arrival time
+            # can't interpolate paths with len < 4
+            if flight.get_path_len() < 4:
+                continue
 
-            start = np.array([xyzb[0, 0], xyzb[0, 1], xyzb[0, 2], xyzb[0, 3], 1.0]).flatten()
-            goal = np.array([xyzb[-1, 0], xyzb[-1, 1], xyzb[-1, 2], xyzb[-1, 3], 1.0]).flatten()
+            start, goal = flight.get_start_goal()
             node = ARAStar(problem, start, goal, obj).plan(to)
 
             if node is not None:
                 planner_path = problem.reconstruct_path(node)
-                planner_path = planner_path[0::5, :]
-                expert_path = flight_to_path(flight)
-                print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
+                expert_path = flight.to_path()
+                expert_dense_path = DubinsProblem.resample_path(expert_path, 3, n_samples)
+                planner_dense_path = DubinsProblem.resample_path(planner_path, 3, n_samples)
 
-                update_grid(grid, planner_path, 100.0)
-                update_grid(grid, expert_path, -100.0)
+                print(obj.integrate_path_cost(expert_dense_path) - obj.integrate_path_cost(planner_dense_path))
+
+                update_grid(grid, expert_dense_path, -100.0)
+                update_grid(grid, planner_dense_path, 100.0)
+
                 ind = ind + 1
                 if ind % 30 == 0:
-                    save_grid(obj.grid.grid)
+                    obj.grid.save_grid()
                 break
             else:
                 print('Timeout')
 
-    save_grid(obj.grid.grid)
+    obj.grid.save_grid()
 
 
 if __name__ == "__main__":

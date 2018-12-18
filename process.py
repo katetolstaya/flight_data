@@ -42,6 +42,18 @@ class FlightSummary(object):
     def get_row(self):
         return np.concatenate(([self.ref, self.time[0]], self.loc_xyzbea[0, :], self.loc_xyzbea[self.T - 1, :]), axis=0)
 
+    def to_path(self):
+        path = np.concatenate((self.loc_xyzbea, self.time.reshape((-1, 1))), axis=1)
+        return path
+
+    def get_start_goal(self):
+        xyzb = self.loc_xyzbea
+        start = np.array([xyzb[0, 0], xyzb[0, 1], xyzb[0, 2], xyzb[0, 3], self.time[0]]).flatten()
+        goal = np.array([xyzb[-1, 0], xyzb[-1, 1], xyzb[-1, 2], xyzb[-1, 3], self.time[-1]]).flatten()
+        return start, goal
+
+    def get_path_len(self):
+        return self.loc_xyzbea.shape[0]
 
 def timestamp(tztime):
     return (tztime - datetime.datetime(1970, 1, 1)).total_seconds()

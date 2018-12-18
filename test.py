@@ -3,7 +3,7 @@ import pickle, random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from process import get_min_max_all
-from train import flight_to_path, load_flight_data
+from train import load_flight_data
 from planning.arastar import ARAStar
 from planning.astar import AStar
 from planning.dubins_problem import DubinsProblem
@@ -45,34 +45,34 @@ def main():
     config = configparser.ConfigParser()
     config.read(config_file)
     config = config['plan1']
+    to = float(config['timeout'])
+    seed = int(config['random_seed'])
+    if seed >= 0:
+        random.seed(seed)
 
+    # get plane data
     flight_summaries = load_flight_data()
-    xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
-    xyzbea_min[4] = 0.0
-    xyzbea_max[4] = 1.0
-
-    grid = Grid(config, xyzbea_min, xyzbea_max)
-    obj = DubinsObjective(config, grid)
-    obj.grid.grid = pickle.load(open('model/grid.pkl', 'rb'))
-    # obj = None
-    random.seed(5)
     random.shuffle(flight_summaries)
 
-    to = float(config['timeout'])
+    # set up cost grid
+    xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
+    grid = Grid(config, xyzbea_min, xyzbea_max)
+    obj = DubinsObjective(config, grid)
+    obj.grid.load_grid()
+
+    # initialize planner problem
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
     print('Planning...')
     for flight in flight_summaries:
-        time = flight.time
-        xyzb = flight.loc_xyzbea
-        start = np.array([xyzb[0, 0], xyzb[0, 1], xyzb[0, 2], xyzb[0, 3], flight.time[0]]).flatten()
-        goal = np.array([xyzb[-1, 0], xyzb[-1, 1], xyzb[-1, 2], xyzb[-1, 3], flight.time[-1]]).flatten()
+
+        start, goal = flight.get_start_goal()
         node = ARAStar(problem, start, goal, obj).plan(to)
         if node is not None:
             planner_path = problem.reconstruct_path(node)
-            expert_path = flight_to_path(flight)
-            planner_spline = problem.smoothing_spline(planner_path, 2)
-            expert_spline = problem.smoothing_spline(expert_path, 3)
+            expert_path = flight.to_path()
+            planner_spline = DubinsProblem.resample_path(planner_path, 2)
+            expert_spline = problem.resample_path(expert_path, 3)
             plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
         else:
             print('Timeout')

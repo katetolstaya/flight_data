@@ -1,10 +1,10 @@
 import numpy as np
 from math import ceil, floor
+import pickle
 
 margin = 4
 half_margin = int(margin / 2)
 
-from scipy.sparse import lil_matrix
 from sklearn.gaussian_process.kernels import RBF
 
 class Grid:
@@ -21,6 +21,9 @@ class Grid:
         z_res = float(config['grid_res_z'])
         theta_res = float(config['grid_res_theta'])
 
+        self.fname = config['grid_filename']
+        self.fname = 'model/' + self.fname + '.pkl'
+
         self.resolution = np.array([xy_res, xy_res, z_res, theta_res]).flatten()
 
         self.n = np.zeros((self.n_dim, 1), dtype=int)
@@ -32,19 +35,17 @@ class Grid:
         self.last_ind = None
         self.last_x = None
 
-        vec = np.arange(-2, 3).astype(float)
-        X, Y, Z, T = np.meshgrid(vec * xy_res, vec * xy_res, vec * z_res, vec * theta_res)
-        X = X.reshape((-1,1))
-        Y = Y.reshape((-1,1))
-        Z = Z.reshape((-1,1))
-        T = T.reshape((-1,1))
-
-        coords = np.stack((X, Y, Z, T), axis=1).reshape((-1,4))
-        rbf = RBF(length_scale=self.sigma)
-
-        self.coord_kernels = rbf(coords, np.zeros((1, 4))).reshape((5,5,5,5))
-
-
+        # vec = np.arange(-2, 3).astype(float)
+        # X, Y, Z, T = np.meshgrid(vec * xy_res, vec * xy_res, vec * z_res, vec * theta_res)
+        # X = X.reshape((-1,1))
+        # Y = Y.reshape((-1,1))
+        # Z = Z.reshape((-1,1))
+        # T = T.reshape((-1,1))
+        #
+        # coords = np.stack((X, Y, Z, T), axis=1).reshape((-1,4))
+        # rbf = RBF(length_scale=self.sigma)
+        #
+        # self.coord_kernels = rbf(coords, np.zeros((1, 4))).reshape((5,5,5,5))
 
 
         self.lookup_res_xy = float(config['dind_res_xy'])
@@ -95,16 +96,28 @@ class Grid:
         except IndexError:
             return # do nothing for values out of bounds
 
+    def load_grid(self, fname=None):
+        if fname is None:
+            fname = self.fname
+        pickle.load(open(fname, 'rb'))
 
-    def update(self, x, u):
+    def save_grid(self, fname=None):
+        if fname is None:
+            fname = self.fname
+        pickle.dump(self.grid, open(fname, 'wb'))
 
 
-        try:
-            x_ind = self.loc_to_index(x)
-            temp = self.grid[x_ind[0]-2:x_ind[0] + 3, x_ind[1]-2:x_ind[1] + 3, x_ind[2]-2:x_ind[2] + 3, x_ind[3]-2:x_ind[3] + 3]
-            self.grid[x_ind[0]-2:x_ind[0] + 3, x_ind[1]-2:x_ind[1]+3, x_ind[2]-2:x_ind[2]+3, x_ind[3]-2:x_ind[3]+3] = temp + self.coord_kernels * u
-            return
-        except IndexError:
-            return # do nothing for values out of bounds
-        except ValueError:
-            return
+
+
+    # def update(self, x, u):
+    #
+    #
+    #     try:
+    #         x_ind = self.loc_to_index(x)
+    #         temp = self.grid[x_ind[0]-2:x_ind[0] + 3, x_ind[1]-2:x_ind[1] + 3, x_ind[2]-2:x_ind[2] + 3, x_ind[3]-2:x_ind[3] + 3]
+    #         self.grid[x_ind[0]-2:x_ind[0] + 3, x_ind[1]-2:x_ind[1]+3, x_ind[2]-2:x_ind[2]+3, x_ind[3]-2:x_ind[3]+3] = temp + self.coord_kernels * u
+    #         return
+    #     except IndexError:
+    #         return # do nothing for values out of bounds
+    #     except ValueError:
+    #         return

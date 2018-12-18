@@ -28,8 +28,8 @@ class Grid:
             [self.lookup_res_xy, self.lookup_res_xy, self.lookup_res_z, self.lookup_res_theta])
         self.lookup_res = self.lookup_res.flatten() / self.resolution.flatten()
 
-        self.fname = config['grid_filename']
-        self.fname = 'model/' + self.fname + '.pkl'
+        self.fname = 'model/' + config['grid_filename'] + '.npy'
+
 
         self.n = np.zeros((self.n_dim, 1), dtype=int)
         for i in range(0, self.n_dim):

@@ -72,8 +72,8 @@ def main():
         if node is not None:
             planner_path = problem.reconstruct_path(node)
             expert_path = flight.to_path()
-            planner_spline = DubinsProblem.resample_path(planner_path, 2)
-            expert_spline = problem.resample_path(expert_path, 3)
+            planner_spline = DubinsProblem.resample_path(planner_path, 3)
+            expert_spline = problem.resample_path(expert_path, 2)
             plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
         else:
             print('Timeout')

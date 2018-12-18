@@ -43,7 +43,7 @@ class ARAStar:
                 break
             min_val = self.update_sets()
             self.eps_ = min(self.eps, self.g[self.goal_node] / min_val)
-            print(self.eps_)
+            #print(self.eps_)
         return self.goal_node
 
     def update_sets(self):

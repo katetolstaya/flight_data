@@ -113,7 +113,7 @@ def main():
                 update_grid(grid, planner_dense_path, 100.0)
 
                 ind = ind + 1
-                if ind % 30 == 0:
+                if ind % 10 == 0:
                     obj.grid.save_grid()
                 break
             else:

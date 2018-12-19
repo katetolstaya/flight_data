@@ -1,5 +1,6 @@
 import numpy as np
-import pickle, random
+import pickle
+import random
 from parameters import Parameters
 from process import get_flights, get_min_max_all
 from planning.grid import Grid
@@ -113,9 +114,9 @@ def main():
                 update_grid(grid, planner_dense_path, 100.0)
 
                 ind = ind + 1
-                if ind % 10 == 0:
+                if ind % 50 == 0:
                     obj.grid.save_grid()
-                break
+
             else:
                 print('Timeout')
 

@@ -1,6 +1,5 @@
 import numpy as np
 from math import ceil, floor
-import pickle
 # from sklearn.gaussian_process.kernels import RBF
 
 
@@ -29,8 +28,8 @@ class Grid:
             [self.lookup_res_xy, self.lookup_res_xy, self.lookup_res_z, self.lookup_res_theta])
         self.lookup_res = self.lookup_res.flatten() / self.resolution.flatten()
 
-        self.fname = config['grid_filename']
-        self.fname = 'model/' + self.fname + '.pkl'
+        self.fname = 'model/' + config['grid_filename'] + '.npy'
+
 
         self.n = np.zeros((self.n_dim, 1), dtype=int)
         for i in range(0, self.n_dim):
@@ -84,12 +83,12 @@ class Grid:
     def load_grid(self, fname=None):
         if fname is None:
             fname = self.fname
-        pickle.load(open(fname, 'rb'))
+        self.grid = np.load(fname)
 
     def save_grid(self, fname=None):
         if fname is None:
             fname = self.fname
-        pickle.dump(self.grid, open(fname, 'wb'))
+        np.save(fname, self.grid)
 
     # def update(self, x, u):
     #     try:

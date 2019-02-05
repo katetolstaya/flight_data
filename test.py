@@ -1,15 +1,13 @@
 import numpy as np
-import pickle, random
+import configparser
+import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from process import get_min_max_all
-from train import load_flight_data
-from planning.arastar import ARAStar
-from planning.astar import AStar
+from train import load_flight_data, make_planner
 from planning.dubins_problem import DubinsProblem
-import configparser
-from planning.grid import Grid
 from planning.objective import DubinsObjective
+from planning.grid import Grid
 
 
 def plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline):
@@ -47,13 +45,7 @@ def main():
     config = config['plan1']
     to = float(config['timeout'])
     seed = int(config['random_seed'])
-    planner_type = config['planner_type']
-    if planner_type == 'AStar':
-        planner = AStar
-    elif planner_type == 'ARAStar':
-        planner = ARAStar
-    else:
-        raise NotImplementedError
+    planner = make_planner(config['planner_type'])
 
     if seed >= 0:
         random.seed(seed)
@@ -73,29 +65,18 @@ def main():
 
     print('Planning...')
     for flight in flight_summaries:
-
-        # can't interpolate paths with len < 4
         if flight.get_path_len() < 4:
             continue
-
         start, goal = flight.get_start_goal()
-
-        expert_path = flight.to_path()
-        expert_spline = problem.resample_path(expert_path, 3)
-
-        print(expert_path[:,3])
-        print(expert_spline[:,3])
-
-        # node = planner(problem, start, goal, obj).plan(to)
-        # if node is not None:
-        #     planner_path = problem.reconstruct_path(node)
-        #
-        #     planner_spline = DubinsProblem.resample_path(planner_path, 2)
-        #
-        #     plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
-        # else:
-        #     print('Timeout')
-
+        node = planner(problem, start, goal, obj).plan(to)
+        if node is not None:
+            planner_path = problem.reconstruct_path(node)
+            expert_path = flight.to_path()
+            planner_spline = DubinsProblem.resample_path(planner_path, 3)
+            expert_spline = problem.resample_path(expert_path, 2)
+            plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
+        else:
+            print('Timeout')
 
 if __name__ == "__main__":
     main()

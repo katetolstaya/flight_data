@@ -41,7 +41,7 @@ class DubinsObjective:
 
 
 def sigmoid(x):
-    return 2.0 * exp(x) / (exp(x) + 1.0)
+    return 2.0 / (exp(-1.0 * x) + 1.0)
 
 
 def llu(x):

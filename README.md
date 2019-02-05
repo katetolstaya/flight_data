@@ -28,6 +28,7 @@ If you close this window, the program will go on to another test case and show a
 
 The generated figures should look like this:
 ![alt text](https://github.com/katetolstaya/flight_data/blob/master/traj.png "Expert and learned trajectory")
+
 The expert trajectory is denoted in green, while the learner's sequence of motion primitives is denoted with red arrows, and a blue spline interpolates these points. 
 
 

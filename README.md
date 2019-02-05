@@ -27,7 +27,7 @@ This will load the trained model listed for `grid_filename` in `params.cfg` and 
 If you close this window, the program will go on to another test case and show another graph. 
 
 The generated figures should look like this:
-![Expert and learned trajectory](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+![alt text](https://github.com/katetolstaya/flight_data/blob/master/traj.png "Expert and learned trajectory")
 The expert trajectory is denoted in green, while the learner's sequence of motion primitives is denoted with red arrows, and a blue spline interpolates these points. 
 
 

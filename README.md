@@ -37,6 +37,7 @@ The expert trajectory is denoted in green, while the learner's sequence of motio
 To modify experiment parameters, change `params.cfg` and retrain the model.
 
 ## To do
+0) Move text parsing code into its own folder
 1) Cost function for spacing between airplanes
 2) Add time constraints for start and end
 3) Take-offs

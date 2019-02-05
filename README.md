@@ -13,10 +13,11 @@ View the current version of the write-up [here](https://www.overleaf.com/read/fk
 To train model, run:
 `python2 train.py`
 
-This will generate a file in the model folder with the filename corresponding to `grid_filename` in `params.cfg`
+This will generate a file in the model folder with the filename corresponding to `grid_filename` in `params.cfg`.
+ 
 For example, `./model/grid6.pkl`
 
-A trained model is available [here]().
+A trained model is available [here](https://drive.google.com/file/d/1h_70HkkdZEDTbHe6POHzZ2r5qNOPPPR5/view?usp=sharing).
 To skip the training step, download this file and save it in the `./model/` folder
 
 ## Test model

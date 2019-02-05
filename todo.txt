@@ -1,3 +1,6 @@
+The problem is that the angles are all [-pi, pi] and the grid is [0, 2pi]
+pick one!
+
 TODO
 
 Tune velocities and tolerances

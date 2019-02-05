@@ -74,16 +74,27 @@ def main():
     print('Planning...')
     for flight in flight_summaries:
 
+        # can't interpolate paths with len < 4
+        if flight.get_path_len() < 4:
+            continue
+
         start, goal = flight.get_start_goal()
-        node = planner(problem, start, goal, obj).plan(to)
-        if node is not None:
-            planner_path = problem.reconstruct_path(node)
-            expert_path = flight.to_path()
-            planner_spline = DubinsProblem.resample_path(planner_path, 2)
-            expert_spline = problem.resample_path(expert_path, 3)
-            plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
-        else:
-            print('Timeout')
+
+        expert_path = flight.to_path()
+        expert_spline = problem.resample_path(expert_path, 3)
+
+        print(expert_path[:,3])
+        print(expert_spline[:,3])
+
+        # node = planner(problem, start, goal, obj).plan(to)
+        # if node is not None:
+        #     planner_path = problem.reconstruct_path(node)
+        #
+        #     planner_spline = DubinsProblem.resample_path(planner_path, 2)
+        #
+        #     plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
+        # else:
+        #     print('Timeout')
 
 
 if __name__ == "__main__":

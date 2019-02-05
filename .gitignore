@@ -1,4 +1,4 @@
-data/*
+model/*
 *.pyc
 venv/*
-*.pkl
+.idea/*

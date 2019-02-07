@@ -36,10 +36,21 @@ The expert trajectory is denoted in green, while the learner's sequence of motio
 ## Change parameters
 To modify experiment parameters, change `params.cfg` and retrain the model.
 
-## To do
+## To do now:
+- 
+- Identify multiple concurrent airplane start/ends, 
+- Plan in order of arrival time, 
+- Use previous trajectories to compute cost using table
+- Precompute cost due to absolute value of position difference to airplane 
+- OR use threshold on min |delta X|, Y, Z - also in terms of grid cells)
+- OR remove cells with huge cost (almost collisons = bad)
+- Time parametrized visualization?
+- Start adding up a histogram of spacing between planes in a table
+
+## To do next:
 0) Move text parsing code into its own folder
 1) Cost function for spacing between airplanes
-2) Add time constraints for start and end
+2) Enforce trajectory start time and end time - should this change the heuristic?
 3) Take-offs
 4) Demonstration in a simulator
 

@@ -30,9 +30,11 @@ class DubinsObjective:
         cost = 0
         for i in range(1, np.size(path, 0)):
             # integrate grid cost
+            euclid_dist = np.linalg.norm(path[i - 1, 0:3] - path[i, 0:3])
             if self.grid is not None:
-                euclid_dist = np.linalg.norm(path[i - 1, 0:3] - path[i, 0:3])
                 cost = cost + (1.0 + self.get_cost(path[i, :])) * euclid_dist
+            else:
+                cost = cost + euclid_dist
 
             if cost is inf:
                 return inf

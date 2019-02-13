@@ -6,6 +6,7 @@ from planning.dubins_node import DubinsNode
 from scipy.interpolate import UnivariateSpline
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from spline.Greville3D import Bspline4
 
 inf = float("inf")
 
@@ -25,12 +26,12 @@ class DubinsProblem:
         self.v_z = float(config['velocity_z'])
         self.curvature = self.v_theta / self.v_xy
 
-        self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
-        self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z
+        self.ps_theta = np.array([0.0, -1.0, 1.0, -0.5, 0.5]) * self.v_theta
+        self.ps_z = np.array([0.0, -1.0, 1.0, -0.5, 0.5]) * self.v_z
 
         self.max_ps_z = max(self.ps_z)
-        self.num_ps_theta = 3  # len(self.ps_theta)
-        self.num_ps_z = 3  # len(self.ps_z)
+        self.num_ps_theta = len(self.ps_theta)
+        self.num_ps_z = len(self.ps_z)
 
         self.lookup_res_xy = float(config['dind_res_xy'])
         self.lookup_res_z = float(config['dind_res_z'])
@@ -63,7 +64,6 @@ class DubinsProblem:
         # z depends only on the z primitive
         self.lookup_delta_z = (self.dt * self.ps_z / self.lookup_res_z).astype(int)
 
-        self.lookup_prim_cost = np.sqrt(np.power(self.ps_z * self.dt, 2) + (self.v_xy * self.dt) ** 2)
         self.lookup_prim_cost = np.sqrt(np.power(self.ps_z * self.dt, 2) + (self.v_xy * self.dt) ** 2)
 
         # t depends only on the time resolution
@@ -144,6 +144,11 @@ class DubinsProblem:
         return self.dubins_distance(start_node.loc, end_node.loc)
 
     def dubins_distance(self, si, gi, bc=None):
+
+        delta_time_sg = gi[4] - si[4]
+        if delta_time_sg < 0:
+            return inf
+
         if bc is None:
             bc = self.bc
 
@@ -166,11 +171,32 @@ class DubinsProblem:
         delta_dist = delta_time * self.v_xy
         delta_z = delta_z * self.lookup_res_z
         dist = sqrt(delta_dist * delta_dist + delta_z * delta_z)
-        return dist
+
+        if delta_time_sg < delta_time:  # not enough time to reach the goal
+            return inf
+
+        return dist # * 0.5 + delta_time_sg * self.v_xy * 0.5
 
     # TODO constrain airplane arrival time, will need to tune velocities
     def at_goal_position(self, start, goal):
         return np.all(np.less(np.abs(start.loc[0:4] - goal.loc[0:4]), self.goal_res[0:4]))
+        #return np.all(np.less(np.abs(start.loc - goal.loc), self.goal_res))
+
+    def path_to_ind(self, path):
+        ind_path = np.zeros(path.shape)
+
+        for i in range(path.shape[0]):
+            ind_path[i, :] = self.to_ind(path[i,:])
+
+        return ind_path
+
+    def ind_to_path(self, ind_path):
+        path = np.zeros(ind_path.shape)
+
+        for i in range(path.shape[0]):
+            path[i, :] = self.to_loc(ind_path[i,:])
+
+        return path
 
     def reconstruct_path(self, n):
         path = np.zeros((0, 5))
@@ -178,6 +204,14 @@ class DubinsProblem:
             path = np.concatenate((path, self.to_loc(n.loc).reshape(1, -1)), axis=0)
             n = n.parent
         return np.flip(path, 0)
+
+    def reconstruct_path_ind(self, n):
+        path = np.zeros((0, 5))
+        while n.parent is not None:
+            path = np.concatenate((path, n.loc.reshape(1, -1)), axis=0)
+            n = n.parent
+        return np.flip(path, 0)
+
 
     def initialize_plot(self, start, goal):
         plt.ion()
@@ -207,12 +241,62 @@ class DubinsProblem:
         self.fig.canvas.flush_events()
 
     @staticmethod
-    def resample_path(path, s, n_ts=None):
+    def resample_path(path, start, goal, n_ts=400):
 
-        if n_ts is None:
-            ts = path[:, 4]
-        else:
-            ts = np.linspace(start=path[0, 4], stop=path[-1, 4], num=n_ts)
+        s = 0.1
+
+        ts = np.linspace( start=path[0, 4], stop=path[-1, 4], num=n_ts)
+
+        s_x = UnivariateSpline(path[:, 4], path[:, 0], s=s)
+        s_y = UnivariateSpline(path[:, 4], path[:, 1], s=s)
+        s_z = UnivariateSpline(path[:, 4], path[:, 2], s=s)
+
+        # interpolate new x,y,z,bearing coordinates
+        xs = s_x(ts).reshape(-1, 1)
+        ys = s_y(ts).reshape(-1, 1)
+        zs = s_z(ts).reshape(-1, 1)
+        bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
+        bs = np.append(bs, [bs[-1]], axis=0)
+        ts = ts.reshape(-1, 1)
+
+        smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
+        return smoothed_path
+
+        # n_path_pts = path.shape[0]
+        #
+        # # Build knot vector tk
+        # maxtk = n_path_pts - 4
+        # s = (1, 4)
+        # tk = np.zeros(s)
+        # tkmiddle = np.arange(maxtk + 1)
+        # tkend = maxtk * np.ones(s)
+        # tk = np.append(tk, tkmiddle)
+        # tk = np.append(tk, tkend)
+        #
+        # # path = np.vstack((start, path, goal))
+        #
+        # ts = np.linspace(start=path[0, 4], stop=path[-1, 4], num=n_ts)
+        #
+        # smoothed_path, B4, tau = Bspline4(np.flipud(path[:,0:3]), n_ts, tk, maxtk) # interpolate in XYZ
+        # smoothed_path = np.flipud(smoothed_path)
+        #
+        # xs = smoothed_path[:, 0].reshape(-1, 1)
+        # ys = smoothed_path[:, 1].reshape(-1, 1)
+        # zs = smoothed_path[:, 2].reshape(-1, 1)
+        # bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
+        # bs = np.append(bs, [bs[-1]], axis=0)
+        # ts = ts.reshape(-1, 1)
+        #
+        # smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
+        # return smoothed_path
+
+    @staticmethod
+    def resample_path_dt(path, s, dt):
+
+        start = np.ceil(path[0, 4]/dt) * dt
+        stop = np.floor(path[-1, 4]/dt) * dt
+
+        ts = np.arange(start=np.ceil(path[0, 4]/dt), stop=np.floor(path[-1, 4]/dt)) * dt
 
         s_x = UnivariateSpline(path[:, 4], path[:, 0], s=s)
         s_y = UnivariateSpline(path[:, 4], path[:, 1], s=s)

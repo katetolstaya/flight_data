@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from train import interp_expert, load_flight_data, interp_path, interp_expert, reconstruct_path
 from planning.dubins_node3 import DubinsNode, reconstruct_path, plot_path
-from planning.objective import DubinsObjective
+from planning.dubins_objective import DubinsObjective
 from planning.grid import Grid
 from planning.arastar import ARAStar
 from planning.astar import AStar

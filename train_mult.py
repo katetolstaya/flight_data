@@ -140,11 +140,11 @@ def main():
                 planner_distances.extend(obj.get_obstacle_distances(planner_path_ind))
                 expert_distances.extend(obj_expert.get_obstacle_distances(expert_path_ind))
 
-                # for d in expert_distances:
-                #     print(d)
-                # print("")
-                # for d in planner_distances:
-                #     print(d)
+                for d in expert_distances:
+                    print(d)
+                print("")
+                for d in planner_distances:
+                    print(d)
                 # TODO use these for gradient update on objective
 
                 obj.grid.update(expert_path, -100.0)

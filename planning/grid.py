@@ -1,7 +1,8 @@
 import numpy as np
 from math import ceil, floor
+from planning.dubins_util import neg_pi_to_pi
 # from sklearn.gaussian_process.kernels import RBF
-
+from scipy.sparse import csc_matrix
 
 class Grid:
     def __init__(self, config, min_val, max_val):
@@ -34,7 +35,9 @@ class Grid:
         self.n = np.zeros((self.n_dim, 1), dtype=int)
         for i in range(0, self.n_dim):
             self.n[i] = ceil(ceil((self.max_val[i] - self.min_val[i]) / self.resolution[i])) + self.margin
-        self.grid = np.zeros(map(tuple, self.n.T)[0])
+
+        #self.grid = np.zeros(map(tuple, self.n.T)[0])
+        self.grid = {}
 
         # want to use a kernel- update more than one cell, with some variance
         # vec = np.arange(-2, 3).astype(float)
@@ -52,12 +55,17 @@ class Grid:
     def get(self, x):
 
         if x.dtype == int:
-            ind = self.ind_to_index(x)
+            ind = self.ind_to_index(x)  # convert from planning indices to grid indices
         else:
-            ind = self.loc_to_index(x)
+            ind = self.loc_to_index(x)  # convert from locations to grid indices
 
         try:
-            val = self.grid[ind]
+
+            if ind not in self.grid:
+                self.grid[ind] = 0
+                val = 0
+            else:
+                val = self.grid[ind]
         except IndexError:
             val = float("inf") # out of bounds => inf
         return val
@@ -80,6 +88,14 @@ class Grid:
         except IndexError:
             return # do nothing for values out of bounds
 
+
+    # def set(self, x, val):
+    #     try:
+    #         self.grid[self.loc_to_index(x)] = val
+    #         return
+    #     except IndexError:
+    #         return # do nothing for values out of bounds
+
     def load_grid(self, fname=None):
         if fname is None:
             fname = self.fname
@@ -89,6 +105,17 @@ class Grid:
         if fname is None:
             fname = self.fname
         np.save(fname, self.grid)
+
+    def update(self, path, coeff):
+        n_path_points = path.shape[0]
+        for i in range(0, n_path_points):
+            noise = np.random.normal(0, 0.25, size=(4,))
+            noise[2] = 0.1 * noise[2]
+            noise[3] = 0.1 * noise[3]
+            temp = path[i, 0:4]  + noise
+            temp[3] = neg_pi_to_pi(temp[3])
+            self.set(temp, self.get(temp) + coeff * 1.0 / n_path_points)
+            # grid.update(temp, coeff * 1.0 / M)
 
     # def update(self, x, u):
     #     try:

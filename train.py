@@ -1,27 +1,37 @@
-import numpy as np
 import pickle
 import random
 from parameters import Parameters
 from process import get_flights, get_min_max_all
 from planning.grid import Grid
-from planning.objective import DubinsObjective
+from planning.dubins_objective import DubinsObjective
 from planning.arastar import ARAStar
 from planning.astar import AStar
 import configparser
 from planning.dubins_problem import DubinsProblem
-from planning.dubins_util import neg_pi_to_pi
+from plot_utils import plot_planner_expert
 
 
-def update_grid(grid, path, coeff):
-    n_path_points = path.shape[0]
-    for i in range(0, n_path_points):
-        noise = np.random.normal(0, 0.5, size=(4,))
-        noise[2] = 0.1 * noise[2]
-        noise[3] = 0.1 * noise[3]
-        temp = path[i, 0:4] + noise
-        temp[3] = neg_pi_to_pi(temp[3])
-        grid.set(temp, grid.get(temp) + coeff * 1.0 / n_path_points)
-        # grid.update(temp, coeff * 1.0 / M)
+def init_obj_prob(config, xyzbea_min, xyzbea_max, flight_summaries=None):
+    print('Initializing...')
+    # set up cost grid
+    n_iters = int(config['num_iterations'])
+    n_samples = int(config['num_samples'])
+    grid = Grid(config, xyzbea_min, xyzbea_max)
+    # initialize cost with one pass through the data
+    if flight_summaries is not None:
+        for flight in flight_summaries:
+            # can't interpolate paths with len < 4
+            if flight.get_path_len() < 5:
+                continue
+
+            path = flight.to_path()
+            start, goal = flight.get_start_goal()
+            dense_path = DubinsProblem.resample_path(path, start, goal, n_samples)
+            for n in range(0, n_iters):
+                grid.update(dense_path, -1000.0)
+    obj = DubinsObjective(config, grid)
+    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
+    return obj, problem
 
 
 def load_flight_data():
@@ -65,24 +75,10 @@ def main():
     flight_summaries = load_flight_data()
     random.shuffle(flight_summaries)
 
-    # set up cost grid
+    # # set up cost grid
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
-    grid = Grid(config, xyzbea_min, xyzbea_max)
 
-    # initialize cost with one pass through the data
-    for flight in flight_summaries:
-        # can't interpolate paths with len < 4
-        if flight.get_path_len() < 4:
-            continue
-
-        path = flight.to_path()
-        dense_path = DubinsProblem.resample_path(path, 3, n_samples)
-        for n in range(0, n_iters):
-            update_grid(grid, dense_path, -1000.0)
-            #update_grid(grid, path, -1000.0)
-
-    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
-    obj = DubinsObjective(config, grid)
+    obj, problem = init_obj_prob(config, xyzbea_min, xyzbea_max, flight_summaries)
     obj.grid.save_grid()
 
     print('Planning...')
@@ -100,18 +96,16 @@ def main():
             if node is not None:
                 planner_path = problem.reconstruct_path(node)
                 expert_path = flight.to_path()
-                # print(obj.integrate_path_cost(expert_path) - obj.integrate_path_cost(planner_path))
-                #
-                # update_grid(grid, expert_path, -100.0)
-                # update_grid(grid, planner_path, 100.0)
 
-                expert_dense_path = DubinsProblem.resample_path(expert_path, 3, n_samples)
-                planner_dense_path = DubinsProblem.resample_path(planner_path, 3, n_samples)
+                expert_dense_path = DubinsProblem.resample_path(expert_path, start, goal)
+                planner_dense_path = DubinsProblem.resample_path(planner_path, start, goal)
 
                 print(obj.integrate_path_cost(expert_dense_path) - obj.integrate_path_cost(planner_dense_path))
 
-                update_grid(grid, expert_dense_path, -100.0)
-                update_grid(grid, planner_dense_path, 100.0)
+                obj.grid.update(expert_dense_path, -100.0)
+                obj.grid.update(planner_dense_path, 100.0)
+
+                plot_planner_expert(planner_path, expert_path, planner_dense_path, expert_dense_path)
 
                 ind = ind + 1
                 if ind % 50 == 0:

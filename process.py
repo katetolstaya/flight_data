@@ -55,6 +55,9 @@ class FlightSummary(object):
     def get_path_len(self):
         return self.loc_xyzbea.shape[0]
 
+    def overlap(self, other):
+        return max(0, min(self.time[-1], other.time[-1]) - max(self.time[0], other.time[0]))
+
 def timestamp(tztime):
     return (tztime - datetime.datetime(1970, 1, 1)).total_seconds()
 

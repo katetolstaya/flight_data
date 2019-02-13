@@ -12,7 +12,7 @@ class Parameters:
         self.range_t = 1000000 #500.0 #200.0 #500.0
 
         self.alt_lim =  3000.0
-        self.dist_lim = 50000.0 # 100000.0
+        self.dist_lim = 25000.0 # 100000.0
 
         self.min_time = 0
         self.start_t = 0

@@ -166,30 +166,30 @@ def dubins_path(sx, sy, syaw, ex, ey, eyaw, c):
     return bcost, bt, bp, bq, bmode
 
 
-def main():
-    sx = 0
-    sy = 0
-    syaw = pi
-
-
-    ex = 10
-    ey = 0
-    eyaw = 0
-
-    v_x = 2.0
-    v_theta = 1.0
-
-    c = v_theta / v_x
-
-    bcost, bt, bp, bq, bmode = dubins_path(sx, sy, syaw, ex, ey, eyaw, c)
-
-    print(bt / v_theta)
-    print(bp / c / v_x)
-    print(bq / v_theta)
-    print(bmode)
-    print(bcost)
-
-
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     sx = 0
+#     sy = 0
+#     syaw = pi
+#
+#
+#     ex = 10
+#     ey = 0
+#     eyaw = 0
+#
+#     v_x = 2.0
+#     v_theta = 1.0
+#
+#     c = v_theta / v_x
+#
+#     bcost, bt, bp, bq, bmode = dubins_path(sx, sy, syaw, ex, ey, eyaw, c)
+#
+#     print(bt / v_theta)
+#     print(bp / c / v_x)
+#     print(bq / v_theta)
+#     print(bmode)
+#     print(bcost)
+#
+#
+#
+# if __name__ == "__main__":
+#     main()

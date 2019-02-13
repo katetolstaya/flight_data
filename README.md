@@ -14,11 +14,7 @@ To train model, run:
 `python2 train.py`
 
 This will generate a file in the model folder with the filename corresponding to `grid_filename` in `params.cfg`.
- 
-For example, `./model/grid6.pkl`
-
-A trained model is available [here](https://drive.google.com/file/d/1h_70HkkdZEDTbHe6POHzZ2r5qNOPPPR5/view?usp=sharing).
-To skip the training step, download this file and save it in the `./model/` folder
+A trained model is provided:  `./model/grid8.pkl`
 
 ## Test model
 To test model, run:

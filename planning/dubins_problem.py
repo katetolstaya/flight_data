@@ -273,12 +273,8 @@ class DubinsProblem:
         tk = np.append(tk, tkmiddle)
         tk = np.append(tk, tkend)
 
-        # path = np.vstack((start, path, goal))
-
         ts = np.linspace(start=path[0, 4], stop=path[-1, 4], num=n_ts)
-
-        smoothed_path, B4, tau = Bspline4(path[:,0:3], n_ts, tk, maxtk) # interpolate in XYZ
-        #smoothed_path = np.flipud(smoothed_path)
+        smoothed_path, B4, tau = Bspline4(path[:,0:3], n_ts, tk, maxtk)  # interpolate in XYZ
 
         xs = smoothed_path[:, 0].reshape(-1, 1)
         ys = smoothed_path[:, 1].reshape(-1, 1)
@@ -293,10 +289,9 @@ class DubinsProblem:
     @staticmethod
     def resample_path_dt(path, s, dt):
 
-        start = np.ceil(path[0, 4]/dt) * dt
-        stop = np.floor(path[-1, 4]/dt) * dt
-
-        ts = np.arange(start=np.ceil(path[0, 4]/dt), stop=np.floor(path[-1, 4]/dt)) * dt
+        start = np.ceil(path[0, 4]/dt)
+        stop = np.floor(path[-1, 4]/dt)
+        ts = np.arange(start=start, stop=stop) * dt
 
         s_x = UnivariateSpline(path[:, 4], path[:, 0], s=s)
         s_y = UnivariateSpline(path[:, 4], path[:, 1], s=s)

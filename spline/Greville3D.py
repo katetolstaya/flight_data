@@ -30,6 +30,14 @@ def Bspline4(CP, nfunctionpoints, tk, maxtk):
         B4functions[i, int(np.floor(tau[i])):int(np.floor(tau[i] + 5))] = AA
         dB4functions[i, int(np.floor(tau[i])):int(np.floor(tau[i] + 5))] = BB
         B4 = B4functions.transpose()
+        # Curvature calculation
+        # drdtau[i, :] = np.matmul(dB4functions[i, :], CP)
+        # dr2dtau2[i, :] = np.matmul(ddB4functions[i, :], CP)
+        # k[i] = math.sqrt((drdtau[i, 1] * dr2dtau2[i, 2] - drdtau[i, 2] * dr2dtau2[i, 1]) ** 2 + (
+        #             drdtau[i, 2] * dr2dtau2[i, 0] - drdtau[i, 0] * dr2dtau2[i, 2]) ** 2 + (
+        #                              drdtau[i, 0] * dr2dtau2[i, 1] - drdtau[i, 1] * dr2dtau2[i, 0]) ** 2) / (
+        #                    drdtau[i, 0] ** 2 + drdtau[i, 1] ** 2 + drdtau[i, 2] ** 2) ** (3 / 2)
+
     path = np.matmul(B4functions, CP)
     return path, B4, tau
 
@@ -84,6 +92,15 @@ def B4eval(t, tk):
           1. / (tk[knotindex + 4] - tk[knotindex + 4 - 4])]])
 
     dBquartic = 4 * np.matmul(Bcubic, dmat)
+    # # Evaluate second derivative of basis function at the same parameter value t...:
+    # DR3 = np.array([[-1 / (tk[knotindex + 1] - tk[knotindex + 1 - 3]), 1 / (tk[knotindex + 1] - tk[knotindex + 1 - 3]), 0, 0],
+    #             [0, - 1 / (tk[knotindex + 2] - tk[knotindex + 2 - 3]), 1 / (tk[knotindex + 2] - tk[knotindex + 2 - 3]),  0],
+    #             [0, 0, - 1 / (tk[knotindex + 3] - tk[knotindex]), 1 / (tk[knotindex + 3] - tk[knotindex])]])
+    # DR4 = np.array([[-1 / (tk[knotindex + 1] - tk[knotindex + 1 - 4]), 1 / (tk[knotindex + 1] - tk[knotindex + 1 - 4]), 0, 0, 0],
+    #             [0, - 1 / (tk[knotindex + 2] - tk[knotindex + 2 - 4]), 1 / (tk[knotindex + 2] - tk[knotindex + 2 - 4]), 0, 0],
+    #             [0, 0, - 1 / (tk[knotindex + 3] - tk[knotindex + 3 - 4]),  1 / (tk[knotindex + 3] - tk[knotindex + 3 - 4]), 0],
+    #             [0, 0, 0, - 1 / (tk[knotindex + 4] - tk[knotindex + 4 - 4]), 1 / (tk[knotindex + 4] - tk[knotindex + 4 - 4])]])
+    # ddBquartic = 3 * 4 * np.matmul(Bquadratic,np.matmul(DR3,DR4))
 
     return Bquartic, dBquartic
 
@@ -99,10 +116,10 @@ def Greville(CP, tk, B4, tau):  # Calculate tkstar as defined by Lutterkort
         tkstar[j] = 0
         for i in range(j + 1, j + 5):  # first cycle is j=1,2,3,4,5 (5 not used because of how Python runs loops)
             tkstar[j] = float(tkstar[j] + float(tk[i] / 4))
-    print("tkstar ", tkstar)
+    # print("tkstar ", tkstar)
     # Determine basis function values at Greville Abscissae
     B4i_tstarj = np.zeros((num_CP, num_CP))
-    print("B4i_tstarjIC ", B4i_tstarj)
+    # print("B4i_tstarjIC ", B4i_tstarj)
     for i in range(0, num_CP):  # Greville Abscissae (one for each CP)
         for j in range(0, num_CP):  # Basis function values at each Greville Abscissa
             if j == num_CP - 1:
@@ -112,14 +129,14 @@ def Greville(CP, tk, B4, tau):  # Calculate tkstar as defined by Lutterkort
                                     tk)  # rows are for each abscissa, columns are basis functions values at the associated abscissa
             # B4functions[i, int(np.floor(t[i])):int(np.floor(t[i] + 5))] = AA
             B4i_tstarj[int(np.floor(tkstar[j])):int(np.floor(tkstar[j] + 5)), j] = AAstar
-    print("B4i_tstarj ", B4i_tstarj)
+    # print("B4i_tstarj ", B4i_tstarj)
     # Compute first and second weighted differences of the control points
     # (Lutterkort uses the nomenclature b to represent control points...)
     dCP_prime = np.zeros((num_CP - 1, spatial_dimension))
     for i in range(1, num_CP):
         for j in range(spatial_dimension):
             dCP_prime[i - 1, j] = (CP[i][j] - CP[i - 1][j]) / (tkstar[i] - tkstar[i - 1])  # first weighted differences
-    print("DCP_prime ", dCP_prime)
+    # print("DCP_prime ", dCP_prime)
     dCP_prime2 = np.zeros((num_CP - 2, spatial_dimension))
     delta_minus = np.zeros((num_CP - 2, spatial_dimension))
     delta_plus = np.zeros((num_CP - 2, spatial_dimension))
@@ -132,21 +149,21 @@ def Greville(CP, tk, B4, tau):  # Calculate tkstar as defined by Lutterkort
                 delta_plus[i, j] = dCP_prime2[i][j]
             # delta_plus[i,j] = max([0],dCP_prime2[i][j])
     # print("delta_plus: ", delta_plus)
-    print("delta_minus: ", delta_minus)
-    print("dCP_prime2: ", dCP_prime2)
+    # print("delta_minus: ", delta_minus)
+    # print("dCP_prime2: ", dCP_prime2)
     # Use Greville abscissae to plot control polygon  bounds (these are indexed with respect to indices in the path variable
     gva = np.zeros(shape=(num_CP))
     gva[0] = 0
     gva[num_CP - 1] = len(tau) - 1
     for j in range(1, num_CP - 1):
         gva[j] = int(np.amin(np.where(tau > tkstar[j])))
-    print("gva: ", gva)
+    # print("gva: ", gva)
     #
     klumatrix = np.zeros((num_CP, num_CP - 1))
-    print("gva(5): ", int(gva[10]))
-    print("gva(6): ", int(gva[11]))
-    print("B4sum: ", sum(i > 0 for i in B4[2, int(gva[10]):int(gva[11])]))
-    print("shape: ", np.shape(B4))
+    # print("gva(5): ", int(gva[10]))
+    # print("gva(6): ", int(gva[11]))
+    # print("B4sum: ", sum(i > 0 for i in B4[2, int(gva[10]):int(gva[11])]))
+    # print("shape: ", np.shape(B4))
     # print("junk: ",np.transpose(B4[3,int(gva[5]):int(gva[5+1])]))
     for i in range(num_CP):
         for j in range(num_CP - 1):
@@ -156,14 +173,14 @@ def Greville(CP, tk, B4, tau):  # Calculate tkstar as defined by Lutterkort
                 count = 0
             klumatrix[i, j] = any
             any = 0  # (B4[i,gva(j):gva(j+1)]>0)
-    print("klumatrix: ", klumatrix)
+    # print("klumatrix: ", klumatrix)
     k_lower = np.zeros((num_CP - 1))
     k_upper = np.zeros((num_CP - 1))
     for j in range(num_CP - 1):
         k_lower[j] = np.min(np.where(klumatrix[:, j] == 1))
         k_upper[j] = np.max(np.where(klumatrix[:, j] == 1))
-    print("k_lower: ", k_lower)
-    print("k_upper: ", k_upper)
+    # print("k_lower: ", k_lower)
+    # print("k_upper: ", k_upper)
     # find Beta_k_i function values at tkstar locations
     Beta_at_tkstar_k_calc = np.zeros(shape=(num_CP - 1, num_CP - 1))
     for k in range(1, num_CP - 1):
@@ -177,16 +194,16 @@ def Greville(CP, tk, B4, tau):  # Calculate tkstar as defined by Lutterkort
                 for j in range(i, int(k_upper[k])):
                     Beta_at_tkstar_k_calc[k, i] = Beta_at_tkstar_k_calc[k, i] + (tkstar[j] - tkstar[i]) * B4i_tstarj[
                         j, k]
-    print("Beta_at_tkstar_k_calc: ", Beta_at_tkstar_k_calc)
-    print("shape: ", np.shape(Beta_at_tkstar_k_calc))
+    # print("Beta_at_tkstar_k_calc: ", Beta_at_tkstar_k_calc)
+    # print("shape: ", np.shape(Beta_at_tkstar_k_calc))
     # lose first row and column of zeros...
     Beta_at_tkstar_k = np.zeros(shape=(num_CP - 2, num_CP - 2))
-    print("Beta_at_tkstar_k: ", Beta_at_tkstar_k)
+    # print("Beta_at_tkstar_k: ", Beta_at_tkstar_k)
     Beta_at_tkstar_k = Beta_at_tkstar_k_calc[1:num_CP - 1, 1:num_CP - 1]
-    print("Beta_at_tkstar_k: ", Beta_at_tkstar_k)
-    print("shape: ", np.shape(Beta_at_tkstar_k))
-    print("shape_delta_minus: ", np.shape(delta_minus))
-    print("shape_delta_plus: ", np.shape(delta_plus))
+    # print("Beta_at_tkstar_k: ", Beta_at_tkstar_k)
+    # print("shape: ", np.shape(Beta_at_tkstar_k))
+    # print("shape_delta_minus: ", np.shape(delta_minus))
+    # print("shape_delta_plus: ", np.shape(delta_plus))
     # Compute bounding envelope offsets from the control points %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     xxx = np.squeeze([Beta_at_tkstar_k.dot(delta_minus)])
     yyy = np.squeeze([Beta_at_tkstar_k.dot(delta_plus)])
@@ -197,8 +214,8 @@ def Greville(CP, tk, B4, tau):  # Calculate tkstar as defined by Lutterkort
     offset_upperCP = np.vstack((offset_upperCP, zzz))
     CP_minus = CP + offset_lowerCP
     CP_plus = CP + offset_upperCP
-    print("CP_minus: ", CP_minus)
-    print("CP_plus: ", CP_plus)
+    # print("CP_minus: ", CP_minus)
+    # print("CP_plus: ", CP_plus)
     return (CP_minus, CP_plus)
 
 
@@ -243,8 +260,6 @@ def main():
 
     # Define Path
     path, B4, tau = Bspline4(CP, nfunctionpoints, tk, maxtk)
-    print('path shape')
-    print(path)
 
     # Get Greville Abscissae
     CP_minus, CP_plus = Greville(CP, tk, B4, tau)
@@ -289,9 +304,9 @@ def main():
     pl.grid(True)
     #
     # Plot the control points
-    print("CP", CP)
+    # print("CP", CP)
     dim_bound = np.shape(bound1)
-    print("dimbound1", dim_bound)
+    # print("dimbound1", dim_bound)
     px, py, pz = zip(*CP)
     # a3.Axes3D.plot(px, py, pz, 'or')
     ax1.scatter(py, px, pz, c='r', marker='o', s=30)

@@ -4,6 +4,10 @@ from process import get_min_max_all
 from train import load_flight_data, make_planner
 from train import init_obj_prob
 from plot_utils import plot_planner_expert
+from planning.grid import Grid
+from planning.dubins_objective import DubinsObjective
+
+from planning.dubins_problem import DubinsProblem
 
 
 def main():
@@ -24,8 +28,16 @@ def main():
 
     # set up cost grid
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
-    obj, problem = init_obj_prob(config, xyzbea_min, xyzbea_max, flight_summaries)
-    # obj.grid.load_grid()
+    print('Initializing...')
+    # set up cost grid
+    n_iters = int(config['num_iterations'])
+    n_samples = int(config['num_samples'])
+    grid = Grid(config, xyzbea_min, xyzbea_max)
+    grid.load_grid()
+
+    obj = DubinsObjective(config, grid)
+    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
+
 
     print('Planning...')
     for flight in flight_summaries:

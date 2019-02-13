@@ -1,6 +1,7 @@
 import numpy as np
 from math import ceil, floor
 from planning.dubins_util import neg_pi_to_pi
+import pickle
 # from sklearn.gaussian_process.kernels import RBF
 from scipy.sparse import csc_matrix
 
@@ -29,7 +30,7 @@ class Grid:
             [self.lookup_res_xy, self.lookup_res_xy, self.lookup_res_z, self.lookup_res_theta])
         self.lookup_res = self.lookup_res.flatten() / self.resolution.flatten()
 
-        self.fname = 'model/' + config['grid_filename'] + '.npy'
+        self.fname = 'model/' + config['grid_filename'] + '.pkl'
 
 
         self.n = np.zeros((self.n_dim, 1), dtype=int)
@@ -99,12 +100,14 @@ class Grid:
     def load_grid(self, fname=None):
         if fname is None:
             fname = self.fname
-        self.grid = np.load(fname)
+        #self.grid = np.load(fname)
+        self.grid = pickle.load(open(fname, "rb"))
 
     def save_grid(self, fname=None):
         if fname is None:
             fname = self.fname
-        np.save(fname, self.grid)
+        #np.save(fname, self.grid)
+        pickle.dump(self.grid, open(fname, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
 
     def update(self, path, coeff):
         n_path_points = path.shape[0]

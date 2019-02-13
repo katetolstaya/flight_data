@@ -29,29 +29,12 @@ class Grid:
         self.lookup_res = np.array(
             [self.lookup_res_xy, self.lookup_res_xy, self.lookup_res_z, self.lookup_res_theta])
         self.lookup_res = self.lookup_res.flatten() / self.resolution.flatten()
-
         self.fname = 'model/' + config['grid_filename'] + '.pkl'
-
-
         self.n = np.zeros((self.n_dim, 1), dtype=int)
         for i in range(0, self.n_dim):
             self.n[i] = ceil(ceil((self.max_val[i] - self.min_val[i]) / self.resolution[i])) + self.margin
 
-        #self.grid = np.zeros(map(tuple, self.n.T)[0])
         self.grid = {}
-
-        # want to use a kernel- update more than one cell, with some variance
-        # vec = np.arange(-2, 3).astype(float)
-        # X, Y, Z, T = np.meshgrid(vec * xy_res, vec * xy_res, vec * z_res, vec * theta_res)
-        # X = X.reshape((-1,1))
-        # Y = Y.reshape((-1,1))
-        # Z = Z.reshape((-1,1))
-        # T = T.reshape((-1,1))
-        #
-        # coords = np.stack((X, Y, Z, T), axis=1).reshape((-1,4))
-        # rbf = RBF(length_scale=self.sigma)
-        #
-        # self.coord_kernels = rbf(coords, np.zeros((1, 4))).reshape((5,5,5,5))
 
     def get(self, x):
 
@@ -87,15 +70,7 @@ class Grid:
             self.grid[self.loc_to_index(x)] = val
             return
         except IndexError:
-            return # do nothing for values out of bounds
-
-
-    # def set(self, x, val):
-    #     try:
-    #         self.grid[self.loc_to_index(x)] = val
-    #         return
-    #     except IndexError:
-    #         return # do nothing for values out of bounds
+            return  # do nothing for values out of bounds
 
     def load_grid(self, fname=None):
         if fname is None:

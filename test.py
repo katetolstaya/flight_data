@@ -28,10 +28,10 @@ def main():
 
     # set up cost grid
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
-    print('Initializing...')
+    print('Loading cost...')
     # set up cost grid
-    n_iters = int(config['num_iterations'])
-    n_samples = int(config['num_samples'])
+    # n_iters = int(config['num_iterations'])
+    # n_samples = int(config['num_samples'])
     grid = Grid(config, xyzbea_min, xyzbea_max)
     grid.load_grid()
 

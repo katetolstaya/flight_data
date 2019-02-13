@@ -243,52 +243,52 @@ class DubinsProblem:
     @staticmethod
     def resample_path(path, start, goal, n_ts=400):
 
-        s = 0.1
-
-        ts = np.linspace( start=path[0, 4], stop=path[-1, 4], num=n_ts)
-
-        s_x = UnivariateSpline(path[:, 4], path[:, 0], s=s)
-        s_y = UnivariateSpline(path[:, 4], path[:, 1], s=s)
-        s_z = UnivariateSpline(path[:, 4], path[:, 2], s=s)
-
-        # interpolate new x,y,z,bearing coordinates
-        xs = s_x(ts).reshape(-1, 1)
-        ys = s_y(ts).reshape(-1, 1)
-        zs = s_z(ts).reshape(-1, 1)
-        bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
-        bs = np.append(bs, [bs[-1]], axis=0)
-        ts = ts.reshape(-1, 1)
-
-        smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
-        return smoothed_path
-
-        # n_path_pts = path.shape[0]
+        # s = 0.1
         #
-        # # Build knot vector tk
-        # maxtk = n_path_pts - 4
-        # s = (1, 4)
-        # tk = np.zeros(s)
-        # tkmiddle = np.arange(maxtk + 1)
-        # tkend = maxtk * np.ones(s)
-        # tk = np.append(tk, tkmiddle)
-        # tk = np.append(tk, tkend)
+        # ts = np.linspace( start=path[0, 4], stop=path[-1, 4], num=n_ts)
         #
-        # # path = np.vstack((start, path, goal))
+        # s_x = UnivariateSpline(path[:, 4], path[:, 0], s=s)
+        # s_y = UnivariateSpline(path[:, 4], path[:, 1], s=s)
+        # s_z = UnivariateSpline(path[:, 4], path[:, 2], s=s)
         #
-        # ts = np.linspace(start=path[0, 4], stop=path[-1, 4], num=n_ts)
-        #
-        # smoothed_path, B4, tau = Bspline4(np.flipud(path[:,0:3]), n_ts, tk, maxtk) # interpolate in XYZ
-        # smoothed_path = np.flipud(smoothed_path)
-        #
-        # xs = smoothed_path[:, 0].reshape(-1, 1)
-        # ys = smoothed_path[:, 1].reshape(-1, 1)
-        # zs = smoothed_path[:, 2].reshape(-1, 1)
+        # # interpolate new x,y,z,bearing coordinates
+        # xs = s_x(ts).reshape(-1, 1)
+        # ys = s_y(ts).reshape(-1, 1)
+        # zs = s_z(ts).reshape(-1, 1)
         # bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
         # bs = np.append(bs, [bs[-1]], axis=0)
         # ts = ts.reshape(-1, 1)
         #
         # smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
         # return smoothed_path
+
+        n_path_pts = path.shape[0]
+
+        # Build knot vector tk
+        maxtk = n_path_pts - 4
+        s = (1, 4)
+        tk = np.zeros(s)
+        tkmiddle = np.arange(maxtk + 1)
+        tkend = maxtk * np.ones(s)
+        tk = np.append(tk, tkmiddle)
+        tk = np.append(tk, tkend)
+
+        # path = np.vstack((start, path, goal))
+
+        ts = np.linspace(start=path[0, 4], stop=path[-1, 4], num=n_ts)
+
+        smoothed_path, B4, tau = Bspline4(path[:,0:3], n_ts, tk, maxtk) # interpolate in XYZ
+        #smoothed_path = np.flipud(smoothed_path)
+
+        xs = smoothed_path[:, 0].reshape(-1, 1)
+        ys = smoothed_path[:, 1].reshape(-1, 1)
+        zs = smoothed_path[:, 2].reshape(-1, 1)
+        bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
+        bs = np.append(bs, [bs[-1]], axis=0)
+        ts = ts.reshape(-1, 1)
+
+        smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
+        return smoothed_path
 
     @staticmethod
     def resample_path_dt(path, s, dt):

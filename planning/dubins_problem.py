@@ -26,8 +26,13 @@ class DubinsProblem:
         self.v_z = float(config['velocity_z'])
         self.curvature = self.v_theta / self.v_xy
 
-        self.ps_theta = np.array([0.0, -1.0, 1.0, -0.5, 0.5]) * self.v_theta
-        self.ps_z = np.array([0.0, -1.0, 1.0, -0.5, 0.5]) * self.v_z
+        # self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
+        # self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z
+
+        #self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
+        self.ps_theta = np.array([0.0, -1.0, 1.0, -0.1, 0.1]) * self.v_theta
+        #self.ps_z = np.array([0.0, -1.0, 1.0, -0.1, 0.1]) * self.v_z
+        self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z
 
         self.max_ps_z = max(self.ps_z)
         self.num_ps_theta = len(self.ps_theta)
@@ -175,18 +180,18 @@ class DubinsProblem:
         if delta_time_sg < delta_time:  # not enough time to reach the goal
             return inf
 
-        return dist # * 0.5 + delta_time_sg * self.v_xy * 0.5
+        return dist  # * 0.5 + delta_time_sg * self.v_xy * 0.5
 
     # TODO constrain airplane arrival time, will need to tune velocities
     def at_goal_position(self, start, goal):
         return np.all(np.less(np.abs(start.loc[0:4] - goal.loc[0:4]), self.goal_res[0:4]))
-        #return np.all(np.less(np.abs(start.loc - goal.loc), self.goal_res))
+        # return np.all(np.less(np.abs(start.loc - goal.loc), self.goal_res))
 
     def path_to_ind(self, path):
         ind_path = np.zeros(path.shape)
 
         for i in range(path.shape[0]):
-            ind_path[i, :] = self.to_ind(path[i,:])
+            ind_path[i, :] = self.to_ind(path[i, :])
 
         return ind_path
 
@@ -194,7 +199,7 @@ class DubinsProblem:
         path = np.zeros(ind_path.shape)
 
         for i in range(path.shape[0]):
-            path[i, :] = self.to_loc(ind_path[i,:])
+            path[i, :] = self.to_loc(ind_path[i, :])
 
         return path
 
@@ -211,7 +216,6 @@ class DubinsProblem:
             path = np.concatenate((path, n.loc.reshape(1, -1)), axis=0)
             n = n.parent
         return np.flip(path, 0)
-
 
     def initialize_plot(self, start, goal):
         plt.ion()
@@ -241,62 +245,10 @@ class DubinsProblem:
         self.fig.canvas.flush_events()
 
     @staticmethod
-    def resample_path(path, start, goal, n_ts=400):
+    def resample_path(path, n_ts=400):
 
-        # s = 0.1
-        #
-        # ts = np.linspace( start=path[0, 4], stop=path[-1, 4], num=n_ts)
-        #
-        # s_x = UnivariateSpline(path[:, 4], path[:, 0], s=s)
-        # s_y = UnivariateSpline(path[:, 4], path[:, 1], s=s)
-        # s_z = UnivariateSpline(path[:, 4], path[:, 2], s=s)
-        #
-        # # interpolate new x,y,z,bearing coordinates
-        # xs = s_x(ts).reshape(-1, 1)
-        # ys = s_y(ts).reshape(-1, 1)
-        # zs = s_z(ts).reshape(-1, 1)
-        # bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
-        # bs = np.append(bs, [bs[-1]], axis=0)
-        # ts = ts.reshape(-1, 1)
-        #
-        # smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
-        # return smoothed_path
-
-        n_path_pts = path.shape[0]
-
-        # Build knot vector tk
-        maxtk = n_path_pts - 4
-        s = (1, 4)
-        tk = np.zeros(s)
-        tkmiddle = np.arange(maxtk + 1)
-        tkend = maxtk * np.ones(s)
-        tk = np.append(tk, tkmiddle)
-        tk = np.append(tk, tkend)
-
-        # path = np.vstack((start, path, goal))
-
-        ts = np.linspace(start=path[0, 4], stop=path[-1, 4], num=n_ts)
-
-        smoothed_path, B4, tau = Bspline4(path[:,0:3], n_ts, tk, maxtk) # interpolate in XYZ
-        #smoothed_path = np.flipud(smoothed_path)
-
-        xs = smoothed_path[:, 0].reshape(-1, 1)
-        ys = smoothed_path[:, 1].reshape(-1, 1)
-        zs = smoothed_path[:, 2].reshape(-1, 1)
-        bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
-        bs = np.append(bs, [bs[-1]], axis=0)
-        ts = ts.reshape(-1, 1)
-
-        smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
-        return smoothed_path
-
-    @staticmethod
-    def resample_path_dt(path, s, dt):
-
-        start = np.ceil(path[0, 4]/dt) * dt
-        stop = np.floor(path[-1, 4]/dt) * dt
-
-        ts = np.arange(start=np.ceil(path[0, 4]/dt), stop=np.floor(path[-1, 4]/dt)) * dt
+        s = 0.1
+        ts = np.linspace( start=path[0, 4], stop=path[-1, 4], num=n_ts)
 
         s_x = UnivariateSpline(path[:, 4], path[:, 0], s=s)
         s_y = UnivariateSpline(path[:, 4], path[:, 1], s=s)
@@ -312,3 +264,75 @@ class DubinsProblem:
 
         smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
         return smoothed_path
+
+        # n_path_pts = path.shape[0]
+        #
+        # # Build knot vector tk
+        # maxtk = n_path_pts - 4
+        # s = (1, 4)
+        # tk = np.zeros(s)
+        # tkmiddle = np.arange(maxtk + 1)
+        # tkend = maxtk * np.ones(s)
+        # tk = np.append(tk, tkmiddle)
+        # tk = np.append(tk, tkend)
+        #
+        # ts = np.linspace(start=path[0, 4], stop=path[-1, 4], num=n_ts)
+        # smoothed_path, B4, tau = Bspline4(path[:, 0:3], n_ts, tk, maxtk)  # interpolate in XYZ
+        #
+        # xs = smoothed_path[:, 0].reshape(-1, 1)
+        # ys = smoothed_path[:, 1].reshape(-1, 1)
+        # zs = smoothed_path[:, 2].reshape(-1, 1)
+        # bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
+        # bs = np.append(bs, [bs[-1]], axis=0)
+        # ts = ts.reshape(-1, 1)
+        #
+        # smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
+        # return smoothed_path
+
+    @staticmethod
+    def resample_path_dt(path, s, dt):
+
+        start = np.ceil(path[0, 4] / dt)
+        stop = np.floor(path[-1, 4] / dt)
+        ts = np.arange(start=start, stop=stop) * dt
+
+        s_x = UnivariateSpline(path[:, 4], path[:, 0], s=s)
+        s_y = UnivariateSpline(path[:, 4], path[:, 1], s=s)
+        s_z = UnivariateSpline(path[:, 4], path[:, 2], s=s)
+
+        # interpolate new x,y,z,bearing coordinates
+        xs = s_x(ts).reshape(-1, 1)
+        ys = s_y(ts).reshape(-1, 1)
+        zs = s_z(ts).reshape(-1, 1)
+        bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
+        bs = np.append(bs, [bs[-1]], axis=0)
+        ts = ts.reshape(-1, 1)
+
+        smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
+        return smoothed_path
+
+    @staticmethod
+    def compute_avg_path_diff(path1, path2):
+
+        # find time synced positions
+        len1 = path1.shape[0]
+        len2 = path2.shape[0]
+        i = 0
+        j = 0
+        while i < len2 and j < len1 and path1[i, 4] != path2[j, 4]:
+            if path1[i, 4] < path2[j, 4]:
+                i = i + 1
+            elif path1[i, 4] > path2[j, 4]:
+                j = j + 1
+            else:
+                return inf  # no matching times
+
+        minlen = min(len1 - i, len2 - j)
+
+        if minlen == 0:
+            return inf
+
+        # sum of norms |(x1,y1,z1) - (x2,y2,z2)|
+        diff = np.sum(np.linalg.norm(path1[i:(i + minlen), 0:3] - path2[j:(j + minlen), 0:3], axis=1))
+        # return average norm diff per time
+        return diff / minlen

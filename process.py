@@ -23,12 +23,13 @@ class FlightSummary(object):
         lat = np.array(flight.latitude)[in_range][inds]
         lon = np.array(flight.longitude)[in_range][inds]
         alt = np.array(flight.altitude)[in_range][inds]
-        # next_lat = np.array(flight.next_latitude)[in_range]
-        # next_lon = np.array(flight.next_longtiude)[in_range]
+        next_lat = np.array(flight.next_latitude)[in_range]
+        next_lon = np.array(flight.next_longtiude)[in_range]
 
         self.loc_xyzbea = np.zeros((self.T, 4))
 
         for k in range(0, self.T):
+            #bea = bearing(lat[k], lon[k], next_lat[k], next_lon[k])
 
             if k == self.T - 1: # or k == self.T - 2:  # last bearing would be wrong otherwise
                 bea = self.loc_xyzbea[k-1, 3]
@@ -92,17 +93,17 @@ def min_dist_to_airport(start_t, end_t, flight, lat0, lon0, alt0):
     return min_dist
 
 
-def interp_loc(tim, flight):
-    flight_time = np.array([timestamp(t) for t in flight.time])
-    lat = np.interp(tim, flight_time, flight.latitude)
-    lon = np.interp(tim, flight_time, flight.longitude)
-    alt = np.interp(tim, flight_time, flight.altitude)
-    nlat = np.interp(tim, flight_time, flight.next_latitude)
-    nlon = np.interp(tim, flight_time, flight.next_longtiude)
-    bea = bearing(lat, lon, nlat, nlon)
-
-    loc = np.array([flight.ref, lat, lon, alt, tim, bea])
-    return loc
+# def interp_loc(tim, flight):
+#     flight_time = np.array([timestamp(t) for t in flight.time])
+#     lat = np.interp(tim, flight_time, flight.latitude)
+#     lon = np.interp(tim, flight_time, flight.longitude)
+#     alt = np.interp(tim, flight_time, flight.altitude)
+#     nlat = np.interp(tim, flight_time, flight.next_latitude)
+#     nlon = np.interp(tim, flight_time, flight.next_longtiude)
+#     bea = bearing(lat, lon, nlat, nlon)
+#
+#     loc = np.array([flight.ref, lat, lon, alt, tim, bea])
+#     return loc
 
 
 def bearing(lat1, lon1, lat2, lon2):

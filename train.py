@@ -68,6 +68,7 @@ def main():
 
     print('T\tPlanner\tExpert\tDiff')
     #initialize cost with one pass through the data
+    dt = 2.0
     ind = 0
     if flight_summaries is not None:
 
@@ -77,16 +78,17 @@ def main():
                 continue
 
             path = flight.to_path()
-            dense_path = DubinsProblem.resample_path_dt(path, s=0.1, dt=1.0)
+            dense_path = DubinsProblem.resample_path_dt(path, s=0.1, dt=dt)
             expert_cost = obj.integrate_path_cost(dense_path)
 
-            if ind % 500 == 0:
+            if ind % 200 == 0:
                 start, goal = flight.get_start_goal()
                 # try planning
                 node = planner(problem, start, goal, obj).plan(to)
                 if node is not None:
                     planner_path = problem.reconstruct_path(node)
-                    planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
+                    planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=dt)
+
                     planner_cost = obj.integrate_path_cost(planner_path)
                     path_diff = problem.compute_avg_path_diff(dense_path, planner_dense_path)
                     print(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff))
@@ -110,14 +112,14 @@ def main():
 
             start, goal = flight.get_start_goal()
             expert_path = flight.to_path()
-            expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=1.0)
+            expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=dt)
             expert_cost = obj.integrate_path_cost(expert_dense_path)
 
             # try planning
             node = planner(problem, start, goal, obj).plan(to)
             if node is not None:
                 planner_path = problem.reconstruct_path(node)
-                planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
+                planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=dt)
 
                 # compute cost
                 planner_cost = obj.integrate_path_cost(planner_path)

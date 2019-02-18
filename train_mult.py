@@ -8,7 +8,7 @@ from planning.grid import Grid
 from plot_utils import add_path_to_plot
 import matplotlib.pyplot as plt
 from plot_utils import plot_planner_expert
-
+import numpy as np
 
 
 def get_multi_airplane_segments(flight_summaries):
@@ -66,17 +66,18 @@ def main():
     print('Initializing the grid...')
     # initialize grid with one pass through the data
     grid = Grid(config, xyzbea_min, xyzbea_max)
-    for flight in flight_summaries:
-        if flight.get_path_len() < 5:  # can't interpolate paths with len < 4
-            continue
-        path = flight.to_path()
-        start, goal = flight.get_start_goal()
-        # use a dense interpolation with 200 pts
-        dense_path = DubinsProblem.resample_path(path, n_samples)
-        # grid.update(dense_path, -1000.0 * n_iters)
-        # grid.gradient_step(dense_path, -1000.0 * n_iters)
-        grid.gradient_step(dense_path, -1000.0)
-    grid.save_grid()
+    grid.load_grid()
+    # for flight in flight_summaries:
+    #     if flight.get_path_len() < 5:  # can't interpolate paths with len < 4
+    #         continue
+    #     path = flight.to_path()
+    #     start, goal = flight.get_start_goal()
+    #     # use a dense interpolation with 200 pts
+    #     dense_path = DubinsProblem.resample_path(path, n_samples)
+    #     # grid.update(dense_path, -1000.0 * n_iters)
+    #     # grid.gradient_step(dense_path, -1000.0 * n_iters)
+    #     grid.gradient_step(dense_path, -1000.0)
+    # grid.save_grid()
 
     # set up planner and objectives
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
@@ -122,17 +123,14 @@ def main():
                 print(path_diff)
 
                 ################################
-
                 # gradient step
-                # grid.update(expert_dense_path, -100.0)
-                # grid.update(planner_dense_path, 100.0)
 
-                grid.gradient_step(expert_dense_path, -1.0)
-                grid.gradient_step(planner_dense_path, 1.0)
+                # grid.gradient_step(expert_dense_path, -1.0)
+                # grid.gradient_step(planner_dense_path, 1.0)
 
                 # TODO
-                # obj.update_obstacle_lims(expert_path_ind, planner_path_ind)
-                # obj_expert.obstacle_lims = obj.obstacle_lims
+                obj.update_obstacle_lims(expert_path_ind, planner_path_ind, 1.0)
+                obj_expert.obstacle_lims = obj.obstacle_lims
 
                 ###############################
 
@@ -140,6 +138,10 @@ def main():
                 obj.add_obstacle(planner_path_ind)
                 obj_expert.add_obstacle(expert_path_ind)
                 n_updates = n_updates + 1
+
+                print(obj.obstacle_lims)
+                #
+                # print(np.mean(obj.obstacle_grid))
 
 
             else:

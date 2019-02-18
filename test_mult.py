@@ -50,7 +50,7 @@ def main():
         for expert_path in paths:
 
             expert_path_ind = problem.path_to_ind(expert_path)
-            obj.update_obstacle_lims(expert_path_ind, expert_path_ind)
+            # obj.update_obstacle_lims(expert_path_ind, expert_path_ind)
 
             node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
 

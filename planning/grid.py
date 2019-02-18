@@ -37,7 +37,7 @@ class Grid:
         self.lookup_res = np.array(
             [self.lookup_res_xy, self.lookup_res_xy, self.lookup_res_z, self.lookup_res_theta])
 
-        self.noise_res = self.lookup_res.reshape((1, -1)) * 1.0
+        self.noise_res = self.lookup_res.reshape((1, -1)) * 2.0
         self.noise_mean = np.array([0.0, 0.0, 0.0, 0.0]).reshape((1, -1))
 
         self.lookup_res = self.lookup_res.flatten() / self.resolution.flatten()
@@ -66,8 +66,10 @@ class Grid:
         #     val = float("inf") # out of bounds => inf
 
         val = self.grid.get(ind)
+
         if val is None:
             val = self.default_val
+        #print(val)
         return val
 
     def ind_to_index(self, x):
@@ -108,19 +110,37 @@ class Grid:
     #         temp[3] = neg_pi_to_pi(temp[3])
     #         self.set(temp, self.get(temp) + coeff * 1.0 / n_path_points)
 
+    # def gradient_step(self, path, step_size):  # path in world coordinates,
+    #
+    #     n_path_points = path.shape[0]
+    #     step_size_n = step_size / n_path_points
+    #     noise = np.random.normal(self.noise_mean, self.noise_res, size=(n_path_points, 4))
+    #     for i in range(0, n_path_points):
+    #         loc_noise = path[i, 0:4] + noise[i, :]
+    #         loc_noise[3] = neg_pi_to_pi(loc_noise[3])
+    #         try:
+    #             old_val = self.get(loc_noise)
+    #             #new_val = old_val * np.exp(step_size_n * max(1.0, old_val)) # true gradient
+    #             new_val = old_val * np.exp(step_size_n)  # fixed step
+    #             #print(new_val)
+    #             self.set(loc_noise, new_val)
+    #         except FloatingPointError:
+    #             # don't update if overflow or underflow
+    #             pass
+
+
     def gradient_step(self, path, step_size):  # path in world coordinates,
 
         n_path_points = path.shape[0]
-        step_size_n = step_size / n_path_points
+        step_size_n = step_size #/ n_path_points
         noise = np.random.normal(self.noise_mean, self.noise_res, size=(n_path_points, 4))
         for i in range(0, n_path_points):
             loc_noise = path[i, 0:4] + noise[i, :]
             loc_noise[3] = neg_pi_to_pi(loc_noise[3])
             try:
                 old_val = self.get(loc_noise)
-                #new_val = old_val * np.exp(step_size_n * max(1.0, old_val)) # true gradient
-                new_val = old_val * np.exp(step_size_n)  # fixed step
-                #print(new_val)
+                new_val = max(old_val + step_size_n, 0)
+                #new_val = old_val * np.exp(step_size_n)  # fixed step
                 self.set(loc_noise, new_val)
             except FloatingPointError:
                 # don't update if overflow or underflow

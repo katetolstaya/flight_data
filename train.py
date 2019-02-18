@@ -11,32 +11,11 @@ from planning.dubins_problem import DubinsProblem
 from plot_utils import plot_planner_expert
 
 
-def init_obj_prob(config, xyzbea_min, xyzbea_max, flight_summaries=None):
-    print('Initializing...')
-    # set up cost grid
-    n_iters = int(config['num_iterations'])
-    n_samples = int(config['num_samples'])
-    grid = Grid(config, xyzbea_min, xyzbea_max)
-    # initialize cost with one pass through the data
-    if flight_summaries is not None:
-        for flight in flight_summaries:
-            # can't interpolate paths with len < 4
-            if flight.get_path_len() < 5:
-                continue
-
-            path = flight.to_path()
-            start, goal = flight.get_start_goal()
-            dense_path = DubinsProblem.resample_path(path, start, goal, n_samples)
-            for n in range(0, n_iters):
-                grid.update(dense_path, -1000.0)
-    obj = DubinsObjective(config, grid)
-    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
-    return obj, problem
-
 
 def load_flight_data():
     params = Parameters()
     fnames = ['flights20160111', 'flights20160112', 'flights20160113']
+    #fnames = ['flights20160111']
     flight_summaries = []
     for fname in fnames:
         flights = pickle.load(open('data/' + fname + '.pkl', 'rb'))
@@ -68,6 +47,7 @@ def main():
     n_iters = int(config['num_iterations'])
     n_samples = int(config['num_samples'])
     seed = int(config['random_seed'])
+
     if seed >= 0:
         random.seed(seed)
 
@@ -78,8 +58,30 @@ def main():
     # # set up cost grid
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
 
-    obj, problem = init_obj_prob(config, xyzbea_min, xyzbea_max, flight_summaries)
-    obj.grid.save_grid()
+    print('Initializing...')
+    # set up cost grid
+    n_iters = int(config['num_iterations'])
+    n_samples = int(config['num_samples'])
+    grid = Grid(config, xyzbea_min, xyzbea_max)
+    obj = DubinsObjective(config, grid)
+    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
+
+    #initialize cost with one pass through the data
+    if flight_summaries is not None:
+
+        for flight in flight_summaries:
+            # can't interpolate paths with len < 4
+            if flight.get_path_len() < 5:
+                continue
+
+            path = flight.to_path()
+            dense_path = DubinsProblem.resample_path(path, n_samples)
+            print(-1.0 * obj.integrate_path_cost(path))
+            for i in range(0, n_iters):
+                grid.gradient_step(dense_path, -10000.0)
+
+    print('Saving grid...')
+    grid.save_grid()
 
     print('Planning...')
     ind = 0
@@ -91,28 +93,27 @@ def main():
                 continue
 
             start, goal = flight.get_start_goal()
-            node = planner(problem, start, goal, obj).plan(to)
+            expert_path = flight.to_path()
+            expert_dense_path = DubinsProblem.resample_path(expert_path, n_samples)
+            expert_cost = obj.integrate_path_cost(expert_dense_path)
 
+            # try planning
+            node = planner(problem, start, goal, obj).plan(to)
             if node is not None:
                 planner_path = problem.reconstruct_path(node)
-                expert_path = flight.to_path()
-
-                expert_dense_path = DubinsProblem.resample_path(expert_path, start, goal)
-                planner_dense_path = DubinsProblem.resample_path(planner_path, start, goal)
-
-                print(obj.integrate_path_cost(expert_dense_path) - obj.integrate_path_cost(planner_dense_path))
-
-                obj.grid.update(expert_dense_path, -100.0)
-                obj.grid.update(planner_dense_path, 100.0)
-
-                plot_planner_expert(planner_path, expert_path, planner_dense_path, expert_dense_path)
-
-                ind = ind + 1
-                if ind % 50 == 0:
-                    obj.grid.save_grid()
-
+                planner_dense_path = DubinsProblem.resample_path(planner_path, n_samples)
+                planner_cost = obj.integrate_path_cost(planner_dense_path)
+                print(planner_cost - expert_cost)
+                grid.gradient_step(expert_dense_path, -100.0)
+                grid.gradient_step(planner_dense_path, 100.0)
             else:
                 print('Timeout')
+                print(-1.0 * expert_cost)
+                grid.gradient_step(expert_dense_path, -100.0)
+            ind = ind + 1
+            if ind % 50 == 0:
+                print('Saving grid...')
+                obj.grid.save_grid()
 
     obj.grid.save_grid()
 

@@ -81,7 +81,6 @@ def main():
             dense_path = DubinsProblem.resample_path_dt(path, s=0.1, dt=dt)
             expert_cost = obj.integrate_path_cost(dense_path)
 
-
             if ind % 200 == 0:
                 start, goal = flight.get_start_goal()
                 # try planning
@@ -97,13 +96,13 @@ def main():
                     print(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf))
 
             for i in range(0, n_iters):
-                grid.gradient_step(dense_path, -10000.0)
+                grid.gradient_step(dense_path, -100.0)
                 ind = ind + 1
 
     print('Saving grid...')
     grid.save_grid()
 
-    # print('Planning...')
+    print('Planning...')
     for i in range(0, n_iters):
 
         for flight in flight_summaries:
@@ -128,11 +127,11 @@ def main():
 
                 print(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff))
                 # print(planner_cost - expert_cost)
-                grid.gradient_step(expert_dense_path, -100.0)
-                grid.gradient_step(planner_dense_path, 100.0)
+                grid.gradient_step(expert_dense_path, -10.0)
+                grid.gradient_step(planner_dense_path, 10.0)
             else:
                 print(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf))
-                grid.gradient_step(expert_dense_path, -100.0)
+                grid.gradient_step(expert_dense_path, -10.0)
             ind = ind + 1
             if ind % 50 == 0:
                 # print('Saving grid...')

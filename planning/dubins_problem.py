@@ -29,6 +29,7 @@ class DubinsProblem:
         # self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
         # self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z
 
+        #self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
         self.ps_theta = np.array([0.0, -1.0, 1.0, -0.1, 0.1]) * self.v_theta
         #self.ps_z = np.array([0.0, -1.0, 1.0, -0.1, 0.1]) * self.v_z
         self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z

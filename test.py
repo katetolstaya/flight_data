@@ -52,6 +52,7 @@ def main():
             planner_spline = problem.resample_path(planner_path, n_samples)
             expert_spline = problem.resample_path(expert_path, n_samples)
             plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
+
         else:
             print('Timeout')
 

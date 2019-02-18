@@ -80,7 +80,7 @@ def main():
             dense_path = DubinsProblem.resample_path_dt(path, s=0.1, dt=1.0)
             expert_cost = obj.integrate_path_cost(dense_path)
 
-            if ind % 50 == 0:
+            if ind % 500 == 0:
                 start, goal = flight.get_start_goal()
                 # try planning
                 node = planner(problem, start, goal, obj).plan(to)

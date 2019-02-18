@@ -9,7 +9,7 @@ from planning.astar import AStar
 import configparser
 from planning.dubins_problem import DubinsProblem
 from plot_utils import plot_planner_expert
-
+import numpy as np
 
 
 def load_flight_data():
@@ -66,7 +66,9 @@ def main():
     obj = DubinsObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
+    print('T\tPlanner\tExpert\tDiff')
     #initialize cost with one pass through the data
+    ind = 0
     if flight_summaries is not None:
 
         for flight in flight_summaries:
@@ -75,16 +77,30 @@ def main():
                 continue
 
             path = flight.to_path()
-            dense_path = DubinsProblem.resample_path(path, n_samples)
-            print(-1.0 * obj.integrate_path_cost(path))
+            dense_path = DubinsProblem.resample_path_dt(path, s=0.1, dt=1.0)
+            expert_cost = obj.integrate_path_cost(dense_path)
+
+            if ind % 50 == 0:
+                start, goal = flight.get_start_goal()
+                # try planning
+                node = planner(problem, start, goal, obj).plan(to)
+                if node is not None:
+                    planner_path = problem.reconstruct_path(node)
+                    planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
+                    planner_cost = obj.integrate_path_cost(planner_path)
+                    path_diff = problem.compute_avg_path_diff(dense_path, planner_dense_path)
+                    print(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff))
+                else:
+                    print(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf))
+
             for i in range(0, n_iters):
                 grid.gradient_step(dense_path, -10000.0)
+                ind = ind + 1
 
     print('Saving grid...')
     grid.save_grid()
 
-    print('Planning...')
-    ind = 0
+    # print('Planning...')
     for i in range(0, n_iters):
 
         for flight in flight_summaries:
@@ -94,25 +110,29 @@ def main():
 
             start, goal = flight.get_start_goal()
             expert_path = flight.to_path()
-            expert_dense_path = DubinsProblem.resample_path(expert_path, n_samples)
+            expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=1.0)
             expert_cost = obj.integrate_path_cost(expert_dense_path)
 
             # try planning
             node = planner(problem, start, goal, obj).plan(to)
             if node is not None:
                 planner_path = problem.reconstruct_path(node)
-                planner_dense_path = DubinsProblem.resample_path(planner_path, n_samples)
-                planner_cost = obj.integrate_path_cost(planner_dense_path)
-                print(planner_cost - expert_cost)
+                planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
+
+                # compute cost
+                planner_cost = obj.integrate_path_cost(planner_path)
+                path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
+
+                print(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff))
+                # print(planner_cost - expert_cost)
                 grid.gradient_step(expert_dense_path, -100.0)
                 grid.gradient_step(planner_dense_path, 100.0)
             else:
-                print('Timeout')
-                print(-1.0 * expert_cost)
+                print(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf))
                 grid.gradient_step(expert_dense_path, -100.0)
             ind = ind + 1
             if ind % 50 == 0:
-                print('Saving grid...')
+                # print('Saving grid...')
                 obj.grid.save_grid()
 
     obj.grid.save_grid()

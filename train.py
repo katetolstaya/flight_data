@@ -68,7 +68,7 @@ def main():
 
     print('T\tPlanner\tExpert\tDiff')
     #initialize cost with one pass through the data
-    dt = 2.0
+    dt = 1.0
     ind = 0
     if flight_summaries is not None:
 
@@ -80,6 +80,7 @@ def main():
             path = flight.to_path()
             dense_path = DubinsProblem.resample_path_dt(path, s=0.1, dt=dt)
             expert_cost = obj.integrate_path_cost(dense_path)
+
 
             if ind % 200 == 0:
                 start, goal = flight.get_start_goal()

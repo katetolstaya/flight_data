@@ -2,11 +2,17 @@ import numpy as np
 from math import ceil, floor
 from planning.dubins_util import neg_pi_to_pi
 import pickle
+
+
 # from sklearn.gaussian_process.kernels import RBF
-from scipy.sparse import csc_matrix
+
 
 class Grid:
     def __init__(self, config, min_val, max_val):
+
+        # allow checking for overflow or underflow
+        np.seterr(over='raise')
+        np.seterr(under='raise')
 
         # set up grid
         self.config = config
@@ -16,6 +22,8 @@ class Grid:
 
         self.margin = 4
         self.half_margin = int(self.margin / 2)
+
+        self.default_val = float(config['grid_weight'])
 
         self.sigma = float(config['grid_sigma'])
         xy_res = float(config['grid_res_xy'])
@@ -28,6 +36,10 @@ class Grid:
         self.lookup_res_theta = float(config['dind_res_theta'])
         self.lookup_res = np.array(
             [self.lookup_res_xy, self.lookup_res_xy, self.lookup_res_z, self.lookup_res_theta])
+
+        self.noise_res = self.lookup_res.reshape((1, -1)) * 1.0
+        self.noise_mean = np.array([0.0, 0.0, 0.0, 0.0]).reshape((1, -1))
+
         self.lookup_res = self.lookup_res.flatten() / self.resolution.flatten()
         self.fname = 'model/' + config['grid_filename'] + '.pkl'
         self.n = np.zeros((self.n_dim, 1), dtype=int)
@@ -43,15 +55,19 @@ class Grid:
         else:
             ind = self.loc_to_index(x)  # convert from locations to grid indices
 
-        try:
+        # try:
+        #
+        #     if ind not in self.grid:
+        #         self.grid[ind] = 0
+        #         val = 0
+        #     else:
+        #         val = self.grid[ind]
+        # except IndexError:
+        #     val = float("inf") # out of bounds => inf
 
-            if ind not in self.grid:
-                self.grid[ind] = 0
-                val = 0
-            else:
-                val = self.grid[ind]
-        except IndexError:
-            val = float("inf") # out of bounds => inf
+        val = self.grid.get(ind)
+        if val is None:
+            val = self.default_val
         return val
 
     def ind_to_index(self, x):
@@ -75,33 +91,37 @@ class Grid:
     def load_grid(self, fname=None):
         if fname is None:
             fname = self.fname
-        #self.grid = np.load(fname)
+        # self.grid = np.load(fname)
         self.grid = pickle.load(open(fname, "rb"))
 
     def save_grid(self, fname=None):
         if fname is None:
             fname = self.fname
-        #np.save(fname, self.grid)
+        # np.save(fname, self.grid)
         pickle.dump(self.grid, open(fname, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
 
-    def update(self, path, coeff):
-        n_path_points = path.shape[0]
-        for i in range(0, n_path_points):
-            noise = np.random.normal(0, 0.25, size=(4,))
-            noise[2] = 0.1 * noise[2]
-            noise[3] = 0.1 * noise[3]
-            temp = path[i, 0:4]  + noise
-            temp[3] = neg_pi_to_pi(temp[3])
-            self.set(temp, self.get(temp) + coeff * 1.0 / n_path_points)
-            # grid.update(temp, coeff * 1.0 / M)
+    # def update(self, path, coeff):  # path in world coords
+    #     n_path_points = path.shape[0]
+    #     noise = np.random.normal(self.noise_mean, self.noise_res, size=(n_path_points, 4))
+    #     for i in range(0, n_path_points):
+    #         temp = path[i, 0:4] + noise[i, :]
+    #         temp[3] = neg_pi_to_pi(temp[3])
+    #         self.set(temp, self.get(temp) + coeff * 1.0 / n_path_points)
 
-    # def update(self, x, u):
-    #     try:
-    #         x_ind = self.loc_to_index(x)
-    #         temp = self.grid[x_ind[0]-2:x_ind[0] + 3, x_ind[1]-2:x_ind[1] + 3, x_ind[2]-2:x_ind[2] + 3, x_ind[3]-2:x_ind[3] + 3]
-    #         self.grid[x_ind[0]-2:x_ind[0] + 3, x_ind[1]-2:x_ind[1]+3, x_ind[2]-2:x_ind[2]+3, x_ind[3]-2:x_ind[3]+3] = temp + self.coord_kernels * u
-    #         return
-    #     except IndexError:
-    #         return # do nothing for values out of bounds
-    #     except ValueError:
-    #         return
+    def gradient_step(self, path, step_size):  # path in world coordinates,
+
+        n_path_points = path.shape[0]
+        step_size_n = step_size / n_path_points
+        noise = np.random.normal(self.noise_mean, self.noise_res, size=(n_path_points, 4))
+        for i in range(0, n_path_points):
+            loc_noise = path[i, 0:4] + noise[i, :]
+            loc_noise[3] = neg_pi_to_pi(loc_noise[3])
+            try:
+                old_val = self.get(loc_noise)
+                #new_val = old_val * np.exp(step_size_n * max(1.0, old_val)) # true gradient
+                new_val = old_val * np.exp(step_size_n)  # fixed step
+                #print(new_val)
+                self.set(loc_noise, new_val)
+            except FloatingPointError:
+                # don't update if overflow or underflow
+                pass

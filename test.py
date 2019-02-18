@@ -2,7 +2,6 @@ import configparser
 import random
 from process import get_min_max_all
 from train import load_flight_data, make_planner
-from train import init_obj_prob
 from plot_utils import plot_planner_expert
 from planning.grid import Grid
 from planning.dubins_objective import DubinsObjective
@@ -18,6 +17,7 @@ def main():
     to = float(config['timeout'])
     seed = int(config['random_seed'])
     planner = make_planner(config['planner_type'])
+    n_samples = int(config['num_samples'])
 
     if seed >= 0:
         random.seed(seed)
@@ -49,8 +49,8 @@ def main():
             planner_path = problem.reconstruct_path(node)
 
             expert_path = flight.to_path()
-            planner_spline = problem.resample_path(planner_path, start, goal)
-            expert_spline = problem.resample_path(expert_path, start, goal)
+            planner_spline = problem.resample_path(planner_path, n_samples)
+            expert_spline = problem.resample_path(expert_path, n_samples)
             plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
         else:
             print('Timeout')

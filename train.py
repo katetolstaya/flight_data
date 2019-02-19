@@ -60,8 +60,6 @@ def main():
 
     print('Initializing...')
     # set up cost grid
-    n_iters = int(config['num_iterations'])
-    n_samples = int(config['num_samples'])
     grid = Grid(config, xyzbea_min, xyzbea_max)
     obj = DubinsObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)

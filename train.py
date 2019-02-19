@@ -102,7 +102,7 @@ def main():
                     log(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf), log_file)
 
             for i in range(0, n_iters):
-                grid.gradient_step(dense_path, -100.0)
+                grid.gradient_step(dense_path, -10.0) # TODO
                 ind = ind + 1
 
     log('Saving grid...')

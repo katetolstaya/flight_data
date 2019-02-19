@@ -2,7 +2,7 @@ import random
 from process import get_min_max_all
 import configparser
 from planning.dubins_problem import DubinsProblem
-from train import load_flight_data, make_planner
+from train import load_flight_data, make_planner, log
 from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
 from planning.grid import Grid
 from plot_utils import add_path_to_plot
@@ -53,6 +53,7 @@ def main():
     n_iters = int(config['num_iterations'])
     n_samples = int(config['num_samples'])
     seed = int(config['random_seed'])
+    log_file = open(config['grid_filename']+"_mult_log.txt", "wb")
 
     if seed >= 0:
         random.seed(seed)
@@ -88,71 +89,62 @@ def main():
     n_updates = 0
 
     # start training
-    for l in lists:
+    ind = 0
+    for n in range(n_iters):
+        for l in lists:
 
-        print('Planning for ' + str(len(l)) + ' airplanes...')
-        paths = time_sync_flight_data(l, problem)
-        obj.clear_obstacles()
-        obj_expert.clear_obstacles()
+            print('Planning for ' + str(len(l)) + ' airplanes...')
+            paths = time_sync_flight_data(l, problem)
+            obj.clear_obstacles()
+            obj_expert.clear_obstacles()
 
-        for expert_path in paths:
+            for expert_path in paths:
 
-            # plan trajectory
-            node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
+                # plan trajectory
+                node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
 
-            if node is not None:
+                if node is not None:
 
-                # get path in space from A* result
-                planner_path_ind = problem.reconstruct_path_ind(node)
-                planner_path = problem.ind_to_path(planner_path_ind)
-                expert_path_ind = problem.path_to_ind(expert_path)
+                    # get path in space from A* result
+                    planner_path_ind = problem.reconstruct_path_ind(node)
+                    planner_path = problem.ind_to_path(planner_path_ind)
+                    expert_path_ind = problem.path_to_ind(expert_path)
 
-                expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=1.0)
-                planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
+                    expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=1.0)
+                    planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
 
-                # expert_dense_path = DubinsProblem.resample_path(expert_path, n_samples)
-                # planner_dense_path = DubinsProblem.resample_path(planner_path, n_samples)
+                    # compute cost
+                    expert_cost = obj_expert.integrate_path_cost(expert_path, expert_path_ind)
+                    planner_cost = obj.integrate_path_cost(planner_path, planner_path_ind)
+                    path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
+                    log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
 
-                # compute cost
-                expert_cost = obj_expert.integrate_path_cost(expert_path, expert_path_ind)
-                planner_cost = obj.integrate_path_cost(planner_path, planner_path_ind)
-                print(planner_cost - expert_cost)
+                    ################################
+                    # gradient step
 
-                path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
-                print(path_diff)
+                    # grid.gradient_step(expert_dense_path, -1.0)
+                    # grid.gradient_step(planner_dense_path, 1.0)
 
-                ################################
-                # gradient step
+                    obj.update_obstacle_lims(expert_path_ind, planner_path_ind, 1.0)
+                    obj_expert.obstacle_lims = obj.obstacle_lims
 
-                # grid.gradient_step(expert_dense_path, -1.0)
-                # grid.gradient_step(planner_dense_path, 1.0)
+                    ###############################
 
-                # TODO
-                obj.update_obstacle_lims(expert_path_ind, planner_path_ind, 1.0)
-                obj_expert.obstacle_lims = obj.obstacle_lims
+                    # add this plane's trajectory to obstacles for the next plane
+                    obj.add_obstacle(planner_path_ind)
+                    obj_expert.add_obstacle(expert_path_ind)
+                    n_updates = n_updates + 1
 
-                ###############################
+                    print(obj.obstacle_lims)
+                    ind = ind + 1
 
-                # add this plane's trajectory to obstacles for the next plane
-                obj.add_obstacle(planner_path_ind)
-                obj_expert.add_obstacle(expert_path_ind)
-                n_updates = n_updates + 1
+                else:
+                    print('Timeout')
+                    break
 
-                print(obj.obstacle_lims)
-                #
-                # print(np.mean(obj.obstacle_grid))
-
-
-            else:
-                print('Timeout')
-                break
-
-
-            if n_updates > 0 and n_updates % 10 == 0:
-                obj.grid.save_grid()
-
-
+                # if n_updates > 0 and n_updates % 10 == 0:
+                #     obj.grid.save_grid()
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ class DubinsMultiAirplaneObjective:
         self.cost_type = config['grid_cost_type']
         self.w = float(config['grid_weight'])  # 0.01 #20.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
 
-        self.sxy = 50
+        self.sxy = 200
         self.sz = 50
         self.obstacle_lims = np.array([self.sxy, self.sxy, self.sz])
         self.obstacle_cost = 100.0
@@ -63,7 +63,6 @@ class DubinsMultiAirplaneObjective:
 
     def integrate_path_cost(self, path, path_ind):  # TODO
         cost = 0
-        dt = 20
         for i in range(1, np.size(path, 0)):
             # integrate grid cost
             euclid_dist = np.linalg.norm(path[i - 1, 0:3] - path[i, 0:3])
@@ -73,16 +72,6 @@ class DubinsMultiAirplaneObjective:
             cost = cost + cost_mult * euclid_dist
             if cost is inf:
                 return inf
-
-        # for i in range(1, np.size(path, 0)):
-        #     # integrate grid cost
-        #     euclid_dist = np.linalg.norm(path[i - 1, 0:3] - path[i, 0:3])
-        #     cost_mult = 1.0  #+ self.get_obstacles_cost(path_ind[i, :])
-        #     if self.grid is not None:
-        #         cost_mult = cost_mult + self.get_cost(path[i, :])
-        #     cost = cost + cost_mult * euclid_dist
-        #     if cost is inf:
-        #         return inf
         return cost
 
     def add_obstacle(self, obstacle_path):
@@ -137,6 +126,7 @@ class DubinsMultiAirplaneObjective:
         et = np.maximum(self.obstacle_lims.reshape((1, -1)) - dist_expert, 0)  # > if distances are too close
         pt = np.maximum(self.obstacle_lims.reshape((1, -1)) - dist_planner, 0)
         delta = np.sum(pt, axis=0) - np.sum(et, axis=0)
+        print(delta)
         self.obstacle_lims = self.obstacle_lims + self.obstacle_step * delta.flatten()
 
         # if dist_expert.shape[0] > 0 and dist_planner.shape[0] > 0:

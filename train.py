@@ -16,6 +16,7 @@ def log(s, f=None):
     if f is not None:
         f.write(s)
         f.write('\n')
+        f.flush()
 
 
 def load_flight_data():

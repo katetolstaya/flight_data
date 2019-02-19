@@ -57,7 +57,8 @@ class Grid:
 
         if val is None:
             val = self.default_val
-        #print(val)
+        # if val>100:
+        #     print(val)
         return val
 
     def ind_to_index(self, x):
@@ -97,8 +98,9 @@ class Grid:
             loc_noise[3] = neg_pi_to_pi(loc_noise[3])
             try:
                 old_val = self.get(loc_noise)
-                new_val = max(old_val + step_size, 0)
-                self.set(loc_noise, new_val)
+                if old_val > 0:
+                    new_val = max(old_val + step_size, 0)
+                    self.set(loc_noise, new_val)
             except FloatingPointError:  # don't update if overflow or underflow
                 pass
 

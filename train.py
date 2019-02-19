@@ -11,11 +11,16 @@ from planning.dubins_problem import DubinsProblem
 from plot_utils import plot_planner_expert
 import numpy as np
 
+def log(s, f=None):
+    print(s)
+    if f is None
+        f.write(s)
+        f.write('\n')
+
 
 def load_flight_data():
     params = Parameters()
     fnames = ['flights20160111', 'flights20160112', 'flights20160113']
-    #fnames = ['flights20160111']
     flight_summaries = []
     for fname in fnames:
         flights = pickle.load(open('data/' + fname + '.pkl', 'rb'))
@@ -48,6 +53,8 @@ def main():
     n_samples = int(config['num_samples'])
     seed = int(config['random_seed'])
 
+    log_file = open(config['grid_filename']+"_log.txt", "wb")
+
     if seed >= 0:
         random.seed(seed)
 
@@ -58,13 +65,13 @@ def main():
     # # set up cost grid
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
 
-    print('Initializing...')
+    log('Initializing...')
     # set up cost grid
     grid = Grid(config, xyzbea_min, xyzbea_max)
     obj = DubinsObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
-    print('T\tPlanner\tExpert\tDiff')
+    log('T\tPlanner\tExpert\tDiff', log_file)
     #initialize cost with one pass through the data
     dt = 1.0
     ind = 0
@@ -89,18 +96,18 @@ def main():
 
                     planner_cost = obj.integrate_path_cost(planner_path)
                     path_diff = problem.compute_avg_path_diff(dense_path, planner_dense_path)
-                    print(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff))
+                    log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
                 else:
-                    print(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf))
+                    log(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf), log_file)
 
             for i in range(0, n_iters):
                 grid.gradient_step(dense_path, -100.0)
                 ind = ind + 1
 
-    print('Saving grid...')
+    log('Saving grid...')
     grid.save_grid()
 
-    print('Planning...')
+    log('Planning...')
     for i in range(0, n_iters):
 
         for flight in flight_summaries:
@@ -123,16 +130,16 @@ def main():
                 planner_cost = obj.integrate_path_cost(planner_path)
                 path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
-                print(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff))
+                log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
                 # print(planner_cost - expert_cost)
                 grid.gradient_step(expert_dense_path, -10.0)
                 grid.gradient_step(planner_dense_path, 10.0)
             else:
-                print(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf))
+                log(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf), log_file)
                 grid.gradient_step(expert_dense_path, -10.0)
             ind = ind + 1
             if ind % 50 == 0:
-                # print('Saving grid...')
+                log('Saving grid...')
                 obj.grid.save_grid()
 
     obj.grid.save_grid()

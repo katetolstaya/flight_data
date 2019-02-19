@@ -51,6 +51,10 @@ def main():
             expert_path = flight.to_path()
             planner_spline = problem.resample_path(planner_path, n_samples)
             expert_spline = problem.resample_path(expert_path, n_samples)
+            expert_cost = obj.integrate_path_cost(expert_spline)
+            planner_cost = obj.integrate_path_cost(planner_spline)
+            print(str(planner_cost - expert_cost))
+
             plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
 
         else:

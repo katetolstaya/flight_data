@@ -13,7 +13,7 @@ import numpy as np
 
 def log(s, f=None):
     print(s)
-    if f is None
+    if f is not None:
         f.write(s)
         f.write('\n')
 

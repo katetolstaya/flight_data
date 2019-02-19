@@ -102,14 +102,12 @@ def main():
 
                 # plan trajectory
                 node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
-
+                expert_path_ind = problem.path_to_ind(expert_path)
                 if node is not None:
 
                     # get path in space from A* result
                     planner_path_ind = problem.reconstruct_path_ind(node)
                     planner_path = problem.ind_to_path(planner_path_ind)
-                    expert_path_ind = problem.path_to_ind(expert_path)
-
                     expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=1.0)
                     planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
 
@@ -140,6 +138,8 @@ def main():
                     ind = ind + 1
 
                 else:
+                    obj.update_obstacle_lims(expert_path_ind, None, 1.0)
+                    obj_expert.obstacle_lims = obj.obstacle_lims
                     print('Timeout')
                     break
 

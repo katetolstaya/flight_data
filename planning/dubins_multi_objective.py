@@ -123,14 +123,25 @@ class DubinsMultiAirplaneObjective:
 
     def update_obstacle_lims(self, path_expert, path_planner, step):
 
-        dist_expert = self.get_path_obstacle_distances(path_expert)
-        dist_planner = self.get_path_obstacle_distances(path_planner)
 
+        dist_expert = self.get_path_obstacle_distances(path_expert)
         et = np.maximum(self.obstacle_lims.reshape((1, -1)) - dist_expert, 0)  # > if distances are too close
-        pt = np.maximum(self.obstacle_lims.reshape((1, -1)) - dist_planner, 0)
-        delta = np.sum(pt, axis=0) - np.sum(et, axis=0)
-        print(delta)
-        self.obstacle_lims = self.obstacle_lims + self.obstacle_step * delta.flatten()
+
+
+        if et.shape[0]>0:
+            print('max')
+            print(np.max(et, axis=0))
+
+        if path_planner is not None:
+            dist_planner = self.get_path_obstacle_distances(path_planner)
+            pt = np.maximum(self.obstacle_lims.reshape((1, -1)) - dist_planner, 0)
+            delta = np.sum(pt, axis=0) - np.sum(et, axis=0)
+            print(delta)
+            self.obstacle_lims = self.obstacle_lims + self.obstacle_step * delta.flatten()
+        else:
+            delta = -1.0 * np.sum(et, axis=0)
+            print(delta)
+            self.obstacle_lims = np.maximum(self.obstacle_lims + self.obstacle_step * delta.flatten(),0)
 
         # if dist_expert.shape[0] > 0 and dist_planner.shape[0] > 0:
         #

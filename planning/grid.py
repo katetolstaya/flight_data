@@ -34,7 +34,7 @@ class Grid:
         self.lookup_res = np.array(
             [self.lookup_res_xy, self.lookup_res_xy, self.lookup_res_z, self.lookup_res_theta])
 
-        noise_var = 2.0
+        noise_var = 1.0
         self.noise_res = self.lookup_res.reshape((1, -1)) * noise_var
         self.noise_mean = np.array([0.0, 0.0, 0.0, 0.0]).reshape((1, -1))
 

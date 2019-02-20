@@ -14,7 +14,7 @@ class DubinsMultiAirplaneObjective:
         self.cost_type = config['grid_cost_type']
         self.w = float(config['grid_weight'])  # 0.01 #20.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
 
-        self.sxy = 200
+        self.sxy = 500
         self.sz = 50
         self.obstacle_lims = np.array([self.sxy, self.sxy, self.sz])
         self.obstacle_cost = 100.0

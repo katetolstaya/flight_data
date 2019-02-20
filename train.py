@@ -125,6 +125,9 @@ def main():
             expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=dt)
             expert_cost = obj.integrate_path_cost(expert_dense_path)
 
+            if expert_cost > 100000:
+                continue
+
             # try planning
             expert_only = False
             if ind > min_ind or ind % step_ind == 0:

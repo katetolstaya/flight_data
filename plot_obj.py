@@ -36,42 +36,51 @@ def main():
     # n_iters = int(config['num_iterations'])
     # n_samples = int(config['num_samples'])
     grid = Grid(config, xyzbea_min, xyzbea_max)
-    grid.load_grid(fname="model/grid15.pkl")
+    grid.load_grid(fname="model/grid16.pkl")
 
     # obj = DubinsObjective(config, grid)
     # problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
-    max_x = 0
-    max_y = 0
-    min_x = 0
-    min_y = 0
-    #max_z = 0
-    #max_theta = 0
+    # max_x = 0
+    # max_y = 0
+    # min_x = 0
+    # min_y = 0
+    # #max_z = 0
+    # #max_theta = 0
+    #
+    # for k in grid.grid.keys():
+    #     max_x = max(max_x, k[0])
+    #     max_y = max(max_y, k[1])
+    #     min_x = min(min_x, k[0])
+    #     min_y = min(min_y, k[1])
+    #     #max_z = max(max_z, k[2])
+    #
+    #
+    # print(max_x)
+    # print(max_y)
+    # print(min_x)
+    # print(min_y)
+
+    max_x = 2000
+    max_y = 2000
+    cost_min = np.ones((max_x, max_y)) * 100
+    count = np.ones((max_x, max_y))
+    cost_sum = np.ones((max_x, max_y)) * 100
 
     for k in grid.grid.keys():
-        max_x = max(max_x, k[0])
-        max_y = max(max_y, k[1])
-        min_x = min(min_x, k[0])
-        min_y = min(min_y, k[1])
-        #max_z = max(max_z, k[2])
+        x = k[0] + 100
+        y = k[1] - 400
+
+        if x > 0 and y > 0 and x < max_x and y < max_y:
+            cost_sum[x, y] = cost_sum[x, y] + grid.grid[k]
+            cost_min[x, y] = min(cost_min[x, y], grid.grid[k])
+
+            count[x,y] = count[x,y] + 1
+
+    avg_cost = cost_sum / count
 
 
-    print(max_x)
-    print(max_y)
-    print(min_x)
-    print(min_y)
-    cost_im = np.ones((max_x, max_y)) * 100
-
-    for k in grid.grid.keys():
-        x = k[0] + min_x
-        y = k[1] + min_y
-
-        if x > 0 and y > 0:
-
-            cost_im[x, y] = min(cost_im[x, y], grid.grid[k])
-
-
-    plt.imshow(cost_im, interpolation='spline16')
+    plt.imshow(cost_min, interpolation='spline16')
     plt.show()
 
     # # pick best orientation in each location (x,y,z)

@@ -108,7 +108,7 @@ def main():
     # log('Saving grid...')
     # grid.save_grid()
 
-    min_ind = 4000
+    min_ind = 3000
     step_ind = 50
     save_ind = 250
 

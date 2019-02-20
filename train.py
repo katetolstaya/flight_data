@@ -126,7 +126,7 @@ def main():
 
             # try planning
             expert_only = False
-            if i > min_ind or i % step_ind == 0:
+            if ind > min_ind or ind % step_ind == 0:
 
                 node = planner(problem, start, goal, obj).plan(to)
                 if node is not None and (i < min_ind or i % step_ind == 0):

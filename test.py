@@ -33,8 +33,8 @@ def main():
     # n_iters = int(config['num_iterations'])
     # n_samples = int(config['num_samples'])
     grid = Grid(config, xyzbea_min, xyzbea_max)
-    grid.load_grid()
-
+    #grid.load_grid()
+    grid.load_grid(fname="model/grid15.pkl")
     obj = DubinsObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
@@ -51,6 +51,10 @@ def main():
             expert_path = flight.to_path()
             planner_spline = problem.resample_path(planner_path, n_samples)
             expert_spline = problem.resample_path(expert_path, n_samples)
+            expert_cost = obj.integrate_path_cost(expert_spline)
+            planner_cost = obj.integrate_path_cost(planner_spline)
+            print(str(planner_cost - expert_cost))
+
             plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
 
         else:

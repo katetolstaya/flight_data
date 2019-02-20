@@ -98,50 +98,55 @@ def main():
             obj.clear_obstacles()
             obj_expert.clear_obstacles()
 
+            timeout = False
+
             for expert_path in paths:
 
                 # plan trajectory
-                node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
+
                 expert_path_ind = problem.path_to_ind(expert_path)
-                if node is not None:
+                expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=1.0)
+                expert_cost = obj_expert.integrate_path_cost(expert_path, expert_path_ind)
+                if not timeout:
+                    node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
+                    if node is not None:
 
-                    # get path in space from A* result
-                    planner_path_ind = problem.reconstruct_path_ind(node)
-                    planner_path = problem.ind_to_path(planner_path_ind)
-                    expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=1.0)
-                    planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
+                        # get path in space from A* result
+                        planner_path_ind = problem.reconstruct_path_ind(node)
+                        planner_path = problem.ind_to_path(planner_path_ind)
+                        planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
+                        planner_cost = obj.integrate_path_cost(planner_path, planner_path_ind)
+                        path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
-                    # compute cost
-                    expert_cost = obj_expert.integrate_path_cost(expert_path, expert_path_ind)
-                    planner_cost = obj.integrate_path_cost(planner_path, planner_path_ind)
-                    path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
+                        log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
 
-                    log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
+                        ################################
+                        # gradient step
 
-                    ################################
-                    # gradient step
+                        # grid.gradient_step(expert_dense_path, -1.0)
+                        # grid.gradient_step(planner_dense_path, 1.0)
 
-                    # grid.gradient_step(expert_dense_path, -1.0)
-                    # grid.gradient_step(planner_dense_path, 1.0)
+                        obj.update_obstacle_lims(expert_path_ind, planner_path_ind, 1.0)
+                        obj_expert.obstacle_lims = obj.obstacle_lims
 
-                    obj.update_obstacle_lims(expert_path_ind, planner_path_ind, 1.0)
-                    obj_expert.obstacle_lims = obj.obstacle_lims
+                        ###############################
 
-                    ###############################
+                        # add this plane's trajectory to obstacles for the next plane
+                        obj.add_obstacle(planner_path_ind)
+                        obj_expert.add_obstacle(expert_path_ind)
+                        n_updates = n_updates + 1
 
-                    # add this plane's trajectory to obstacles for the next plane
-                    obj.add_obstacle(planner_path_ind)
-                    obj_expert.add_obstacle(expert_path_ind)
-                    n_updates = n_updates + 1
+                        print(obj.obstacle_lims)
+                        ind = ind + 1
+                    else:
+                        timeout = True
 
-                    print(obj.obstacle_lims)
-                    ind = ind + 1
-
-                else:
+                if timeout:
                     obj.update_obstacle_lims(expert_path_ind, None, 1.0)
                     obj_expert.obstacle_lims = obj.obstacle_lims
+                    obj_expert.add_obstacle(expert_path_ind)
                     print('Timeout')
-                    break
+                    #break
 
                 # if n_updates > 0 and n_updates % 10 == 0:
                 #     obj.grid.save_grid()

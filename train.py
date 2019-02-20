@@ -95,14 +95,14 @@ def main():
                     planner_path = problem.reconstruct_path(node)
                     planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=dt)
 
-                    planner_cost = obj.integrate_path_cost(planner_path)
+                    planner_cost = obj.integrate_path_cost(planner_dense_path)
                     path_diff = problem.compute_avg_path_diff(dense_path, planner_dense_path)
                     log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
                 else:
                     log(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf), log_file)
 
             for i in range(0, n_iters):
-                grid.gradient_step(dense_path, -100.0) # TODO
+                grid.gradient_step(dense_path, -10.0)  # TODO
                 ind = ind + 1
 
     log('Saving grid...')
@@ -133,8 +133,9 @@ def main():
 
                 log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
                 # print(planner_cost - expert_cost)
-                grid.gradient_step(expert_dense_path, -10.0)
                 grid.gradient_step(planner_dense_path, 10.0)
+                grid.gradient_step(expert_dense_path, -10.0)
+
             else:
                 log(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf), log_file)
                 grid.gradient_step(expert_dense_path, -10.0)

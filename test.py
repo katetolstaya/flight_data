@@ -34,7 +34,8 @@ def main():
     # n_samples = int(config['num_samples'])
     grid = Grid(config, xyzbea_min, xyzbea_max)
     #grid.load_grid()
-    grid.load_grid(fname="model/grid15.pkl")
+    fname = "model/grid15.pkl"
+    grid.load_grid(fname=fname)
     obj = DubinsObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 

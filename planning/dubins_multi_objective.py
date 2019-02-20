@@ -14,7 +14,8 @@ class DubinsMultiAirplaneObjective:
         self.cost_type = config['grid_cost_type']
         self.w = float(config['grid_weight'])  # 0.01 #20.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
 
-        self.sxy = 500
+
+        self.sxy = 1000
         self.sz = 50
         self.obstacle_lims = np.array([self.sxy, self.sxy, self.sz])
         self.obstacle_cost = 100.0
@@ -114,7 +115,10 @@ class DubinsMultiAirplaneObjective:
             obstacles = self.obstacle_paths.get(ind[4])
             if obstacles is not None:
                 for i in range(obstacles.shape[0]):
+                    # print(obstacles[i, :])
+                    # print(ind[0:3])
                     diff = np.abs(obstacles[i, :] - ind[0:3])
+                    # print(diff)
                     distances = np.vstack((distances, diff))
         return distances
 

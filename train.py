@@ -108,9 +108,9 @@ def main():
     # log('Saving grid...')
     # grid.save_grid()
 
-    min_ind = 1000
-    step_ind = 10
-    save_ind = 200
+    min_ind = 2000
+    step_ind = 50
+    save_ind = 250
 
     log('Planning...')
     for i in range(0, n_iters):

@@ -1,7 +1,7 @@
 import numpy as np
 from math import ceil, floor
 from planning.dubins_util import neg_pi_to_pi
-import pickle
+import cPickle as pickle
 
 
 class Grid:

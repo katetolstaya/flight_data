@@ -125,23 +125,31 @@ def main():
             expert_cost = obj.integrate_path_cost(expert_dense_path)
 
             # try planning
-            node = planner(problem, start, goal, obj).plan(to)
-            if node is not None and (i < min_ind or i % step_ind == 0):
-                planner_path = problem.reconstruct_path(node)
-                planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=dt)
+            expert_only = False
+            if i > min_ind or i % step_ind == 0:
 
-                # compute cost
-                planner_cost = obj.integrate_path_cost(planner_dense_path)
-                path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
+                node = planner(problem, start, goal, obj).plan(to)
+                if node is not None and (i < min_ind or i % step_ind == 0):
+                    planner_path = problem.reconstruct_path(node)
+                    planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=dt)
 
-                log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
-                # print(planner_cost - expert_cost)
-                grid.gradient_step(planner_dense_path, 10.0)
-                grid.gradient_step(expert_dense_path, -10.0)
+                    # compute cost
+                    planner_cost = obj.integrate_path_cost(planner_dense_path)
+                    path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
+                    log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
+                    # print(planner_cost - expert_cost)
+                    grid.gradient_step(planner_dense_path, 10.0)
+                    grid.gradient_step(expert_dense_path, -10.0)
+                else:
+                    expert_only = True
             else:
+                expert_only = True
+
+            if expert_only:
                 log(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf), log_file)
                 grid.gradient_step(expert_dense_path, -10.0)
+
             ind = ind + 1
             if ind % step_ind * 20 == 0:
                 log('Saving grid...')

@@ -110,6 +110,7 @@ def main():
 
     min_ind = 1000
     step_ind = 10
+    save_ind = 200
 
     log('Planning...')
     for i in range(0, n_iters):
@@ -151,7 +152,7 @@ def main():
                 grid.gradient_step(expert_dense_path, -10.0)
 
             ind = ind + 1
-            if ind % step_ind * 20 == 0:
+            if ind % save_ind == 0:
                 log('Saving grid...')
                 obj.grid.save_grid()
 

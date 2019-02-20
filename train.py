@@ -128,7 +128,7 @@ def main():
                 planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=dt)
 
                 # compute cost
-                planner_cost = obj.integrate_path_cost(planner_path)
+                planner_cost = obj.integrate_path_cost(planner_dense_path)
                 path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
                 log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)

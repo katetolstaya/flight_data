@@ -21,7 +21,7 @@ def log(s, f=None):
 
 def load_flight_data():
     params = Parameters()
-    fnames = ['flights20160111', 'flights20160112', 'flights20160113']
+    fnames = ['flights20160111', 'flights20160112', 'flights20160113', 'flights0501', 'flights0502', 'flights0503']
     flight_summaries = []
     for fname in fnames:
         flights = pickle.load(open('data/' + fname + '.pkl', 'rb'))
@@ -108,7 +108,7 @@ def main():
     # log('Saving grid...')
     # grid.save_grid()
 
-    min_ind = 5000
+    min_ind = 4000
     step_ind = 50
     save_ind = 250
 

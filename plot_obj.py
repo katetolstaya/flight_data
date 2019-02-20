@@ -36,40 +36,23 @@ def main():
     # n_iters = int(config['num_iterations'])
     # n_samples = int(config['num_samples'])
     grid = Grid(config, xyzbea_min, xyzbea_max)
-    grid.load_grid(fname="model/grid16.pkl")
+    grid.load_grid(fname="model/grid19.pkl")
 
-    # obj = DubinsObjective(config, grid)
-    # problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
+    obj = DubinsObjective(config, grid)
+    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
-    # max_x = 0
-    # max_y = 0
-    # min_x = 0
-    # min_y = 0
-    # #max_z = 0
-    # #max_theta = 0
-    #
-    # for k in grid.grid.keys():
-    #     max_x = max(max_x, k[0])
-    #     max_y = max(max_y, k[1])
-    #     min_x = min(min_x, k[0])
-    #     min_y = min(min_y, k[1])
-    #     #max_z = max(max_z, k[2])
-    #
-    #
-    # print(max_x)
-    # print(max_y)
-    # print(min_x)
-    # print(min_y)
+    max_x = 500
+    max_y = 500
 
-    max_x = 2000
-    max_y = 2000
+    offset_x = -100 #200
+    offset_y = -600
     cost_min = np.ones((max_x, max_y)) * 100
     count = np.ones((max_x, max_y))
     cost_sum = np.ones((max_x, max_y)) * 100
 
     for k in grid.grid.keys():
-        x = k[0] + 100
-        y = k[1] - 400
+        x = k[0] + offset_x
+        y = k[1] + offset_y
 
         if x > 0 and y > 0 and x < max_x and y < max_y:
             cost_sum[x, y] = cost_sum[x, y] + grid.grid[k]
@@ -78,10 +61,32 @@ def main():
             count[x,y] = count[x,y] + 1
 
     avg_cost = cost_sum / count
+    cost_min = cost_min.T
+
+    flight_summaries.pop(0)
+    for flight in flight_summaries:
+        if flight.get_path_len() < 4:
+            continue
+        start, goal = flight.get_start_goal()
+        node = planner(problem, start, goal, obj).plan(to)
+        if node is not None:
+            # planner_path = problem.reconstruct_path(node)
+            planner_path = problem.reconstruct_path_ind(node)
+
+            planner_path_ind = np.zeros((planner_path.shape[0], 2))
+            for t in range(planner_path.shape[0]):
+                temp = grid.ind_to_index(planner_path[t,:])
+                planner_path_ind[t,:] = temp[0:2]
+
+            fig, ax = plt.subplots()
+            ax.imshow(cost_min, extent=[0, max_x, 0, max_y], interpolation='spline16', alpha=0.5, origin='lower')
+            ax.plot(planner_path_ind[:,0]+offset_x, planner_path_ind[:,1]+offset_y, linewidth=5, color='firebrick')
+            plt.show()
+
+        else:
+            print("timeout")
 
 
-    plt.imshow(cost_min, interpolation='spline16')
-    plt.show()
 
     # # pick best orientation in each location (x,y,z)
     # # plot only those location that are > 0 (good)

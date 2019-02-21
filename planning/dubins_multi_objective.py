@@ -13,6 +13,7 @@ class DubinsMultiAirplaneObjective:
         self.obstacle_step = np.array([0.1, 0.1, 0.01]).flatten()
         self.clip = 500.0 #np.array([500.0, 500.0, 2.5]).flatten()
         self.obstacle_paths = {}
+        #[5400. 5400.  140.]
 
     def get_cost(self, ind):
         if isinstance(ind, DubinsNode):

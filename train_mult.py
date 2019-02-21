@@ -5,14 +5,9 @@ from planning.dubins_problem import DubinsProblem
 from train import load_flight_data, make_planner, log
 from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
 from planning.grid import Grid
-from plot_utils import add_path_to_plot
-import matplotlib.pyplot as plt
-from plot_utils import plot_planner_expert
-import numpy as np
-
 
 def get_multi_airplane_segments(flight_summaries):
-    overlap_length = 800
+    overlap_length = 200
     lists = []
     for s in flight_summaries:
         added = False
@@ -36,7 +31,7 @@ def get_multi_airplane_segments(flight_summaries):
 
 def time_sync_flight_data(flights, problem):
     paths = []
-    s = 0.1
+    s = 0.0
     for flight in flights:
         paths.append(problem.resample_path_dt(flight.to_path(), s, problem.dt))
     return paths

@@ -28,29 +28,21 @@ The generated figures should look like this:
 
 The expert trajectory is denoted in green, while the learner's sequence of motion primitives is denoted with red arrows, and a blue spline interpolates these points. 
 
-
 ## Change parameters
 To modify experiment parameters, change `params.cfg` and retrain the model.
 
-## To do now:
-- 
-- Identify multiple concurrent airplane start/ends, 
-- Plan in order of arrival time, 
-- Use previous trajectories to compute cost using table
-- Precompute cost due to absolute value of position difference to airplane 
-- OR use threshold on min |delta X|, Y, Z - also in terms of grid cells)
-- OR remove cells with huge cost (almost collisons = bad)
-- Time parametrized visualization?
-- Start adding up a histogram of spacing between planes in a table
+## To do for paper:
+1) Record video of 4 planes landing and get screenshots
+2) Plot of IRL cost while learning cost grid
+3) Plot of IRL cost while learning spacing
+4) Demo with slower or faster airplanes
 
-## To do next:
-0) Move text parsing code into its own folder
-1) Cost function for spacing between airplanes
+## To do for code:
+1) Move text parsing code into its own folder
+
+## Future directions
+1) Demo in a simulator
 2) Enforce trajectory start time and end time - should this change the heuristic?
-3) Take-offs
-4) Demonstration in a simulator
-
-## Future research directions
-
-1) Prune high cost trajectories (as if high cost regions are fake obstacles)
-3) Refine splines by adding control points sampled using a Variational Autoencoder ( won't generalize to landing vs takeoff)
+3) Take-offs 
+4) Prune high cost trajectories (as if high cost regions are fake obstacles)
+5) Refine splines by adding control points sampled using a Variational Autoencoder ( won't generalize to landing vs takeoff)

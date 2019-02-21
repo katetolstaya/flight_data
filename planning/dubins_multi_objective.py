@@ -15,30 +15,32 @@ class DubinsMultiAirplaneObjective:
         self.w = float(config['grid_weight'])  # 0.01 #20.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
 
 
-        self.sxy = 50
+        self.
+        self.sxy = 200
         self.sz = 5
         self.obstacle_lims = np.array([self.sxy, self.sxy, self.sz])
-        self.obstacle_cost = 100.0
+        self.obstacle_cost = 1000.0
         self.obstacle_step = 0.1
 
         # self.obstacle_b = np.array([self.sxy, self.sxy, self.sz])
         # self.obstacle_m = np.array([-1.0, -1.0, -1.0, -1.0])
 
-        self.obstacle_grid = np.zeros((self.sxy, self.sxy, self.sz))
+        self.obstacle_grid = np.zeros((2*self.sxy, 2*self.sxy, 2*self.sz))
         self.lookup_res_xy = float(config['dind_res_xy'])
         self.lookup_res_z = float(config['dind_res_z'])
         self.lookup_res_theta = float(config['dind_res_theta'])
         self.lookup_res = np.array(
             [self.lookup_res_xy, self.lookup_res_xy, self.lookup_res_z, self.lookup_res_theta])
 
-        for i in range(self.sxy):
-            dx = i * self.lookup_res_xy
-            for j in range(self.sxy):
-                dy = j * self.lookup_res_xy
-                for k in range(self.sz):
-                    dz = k * self.lookup_res_z
-
-                    self.obstacle_grid[i, j, k] = np.exp(-np.linalg.norm(np.array([dx, dy, dz]))) * 100
+        # for i in range(self.sxy):
+        #     dx = i * self.lookup_res_xy
+        #     for j in range(self.sxy):
+        #         dy = j * self.lookup_res_xy
+        #         for k in range(self.sz):
+        #             dz = k * self.lookup_res_z
+        #
+        #             #self.obstacle_grid[i, j, k] = np.exp(-np.linalg.norm(np.array([dx, dy, dz]))) * 100
+        #             self.obstacle_grid[i, j, k] = self.get_obstacle_threshold(np.array([i,j,k]))
 
         self.obstacle_paths = {}
 
@@ -88,7 +90,7 @@ class DubinsMultiAirplaneObjective:
 
     def get_obstacle_threshold(self, diff):
 
-        return self.obstacle_cost * np.sum(np.maximum(self.obstacle_lims - diff, 0))
+        return self.obstacle_cost * np.product(np.maximum(self.obstacle_lims - diff, 0))
 
         # if np.all(diff < self.obstacle_lims):
         #     return self.obstacle_cost
@@ -122,7 +124,7 @@ class DubinsMultiAirplaneObjective:
                     distances = np.vstack((distances, diff))
         return distances
 
-    def update_obstacle_lims(self, path_expert, path_planner, step):
+    def update_obstacle_lims(self, path_expert, path_planner, step): #TODO this is messed up
 
 
         dist_expert = self.get_path_obstacle_distances(path_expert)

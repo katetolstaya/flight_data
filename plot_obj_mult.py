@@ -7,8 +7,6 @@ import random
 from process import get_min_max_all
 from train import load_flight_data, make_planner
 from planning.grid import Grid
-from planning.dubins_objective import DubinsObjective
-
 from planning.dubins_problem import DubinsProblem
 from train_mult import get_multi_airplane_segments, time_sync_flight_data
 from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
@@ -39,11 +37,11 @@ def main():
     grid = Grid(config, xyzbea_min, xyzbea_max)
     grid.load_grid(fname="model/grid19.pkl")
 
-    max_x = 300
-    max_y = 300
+    max_x = 400
+    max_y = 400
 
-    offset_x = -250 #200
-    offset_y = -750
+    offset_x = -200 #200
+    offset_y = -700
     offset = np.array([offset_x, offset_y, 0, 0, 0]).reshape((1, 5))
     cost_min = np.ones((max_x, max_y)) * 100
     count = np.ones((max_x, max_y))
@@ -63,8 +61,9 @@ def main():
     cost_min = cost_min.T
 
 
-    colors = ['forestgreen', 'brickred', 'purple', 'darkblue', 'darkorange']
+    colors = ['forestgreen', 'firebrick', 'purple', 'darkblue', 'darkorange']
     plt.ion()
+
     obj = DubinsMultiAirplaneObjective(config, grid)
     #obj_expert = DubinsMultiAirplaneObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
@@ -87,26 +86,34 @@ def main():
             if len(learner_trajs) >= 5:
                 break
 
-            print('Planning #' + str(len(learner_trajs)))
+            print('Planning #' + str(len(learner_trajs)+1))
 
-            node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
+            expert_path_ind = problem.path_to_ind(expert_path)
+            planner_path_grid = np.zeros((expert_path_ind.shape[0], 5))
+            for t in range(expert_path_ind.shape[0]):
+                ind = np.append(np.asarray(grid.ind_to_index(expert_path_ind[t, :])), expert_path_ind[t, 4])
+                planner_path_grid[t, :] = ind
+            planner_path_grid = planner_path_grid + offset
+            learner_trajs.append(planner_path_grid)
 
-            if node is not None:
-
-                planner_path = problem.reconstruct_path(node)
-                planner_path_ind = problem.reconstruct_path_ind(node)
-                obj.add_obstacle(planner_path_ind)
-
-                planner_path_grid = np.zeros((planner_path_ind.shape[0], 5))
-                for t in range(planner_path_ind.shape[0]):
-                    ind = np.append(np.asarray(grid.ind_to_index(planner_path_ind[t, :])), planner_path[t, 4])
-                    planner_path_grid[t, :] = ind
-                planner_path_grid = planner_path_grid + offset
-                learner_trajs.append(planner_path_grid)
-
-            else:
-                print('Timeout')
-                break
+            # node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
+            #
+            # if node is not None:
+            #
+            #     planner_path = problem.reconstruct_path(node)
+            #     planner_path_ind = problem.reconstruct_path_ind(node)
+            #     obj.add_obstacle(planner_path_ind)
+            #
+            #     planner_path_grid = np.zeros((planner_path_ind.shape[0], 5))
+            #     for t in range(planner_path_ind.shape[0]):
+            #         ind = np.append(np.asarray(grid.ind_to_index(planner_path_ind[t, :])), planner_path[t, 4])
+            #         planner_path_grid[t, :] = ind
+            #     planner_path_grid = planner_path_grid + offset
+            #     learner_trajs.append(planner_path_grid)
+            #
+            # else:
+            #     print('Timeout')
+            #     break
 
         n_learners = len(learner_trajs)
         if n_learners > 1:
@@ -121,7 +128,7 @@ def main():
             ax.imshow(cost_min, extent=[0, max_x, 0, max_y], interpolation='spline16', alpha=0.5, origin='lower')
 
             for i in range(len(learner_trajs)):
-                line, = ax.plot([0,1], [0,1], linewidth=5, color=colors[i])
+                line, = ax.plot([0,1], [0,1], linewidth=3, color=colors[i])
                 lines.append(line)
 
             inds = np.zeros((n_learners,),dtype=np.int)
@@ -134,7 +141,7 @@ def main():
                         inds[i] = inds[i] + 1
                 fig.canvas.draw()
                 fig.canvas.flush_events()
-                time.sleep(0.5)
+                time.sleep(1.0)
 
 
 if __name__ == "__main__":

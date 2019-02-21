@@ -14,7 +14,7 @@ class FlightSummary(object):
 
     def __init__(self, flight, in_range, params):
         self.ref = flight.ref
-        self.time = np.array([timestamp(t) - params.start_t for t in flight.time])[in_range]
+        self.time = np.array([timestamp(t) for t in flight.time])[in_range]
         self.T = len(self.time)
 
         inds = np.argsort(self.time)
@@ -23,9 +23,6 @@ class FlightSummary(object):
         lat = np.array(flight.latitude)[in_range][inds]
         lon = np.array(flight.longitude)[in_range][inds]
         alt = np.array(flight.altitude)[in_range][inds]
-        next_lat = np.array(flight.next_latitude)[in_range]
-        next_lon = np.array(flight.next_longtiude)[in_range]
-
         self.loc_xyzbea = np.zeros((self.T, 4))
 
         for k in range(0, self.T):
@@ -59,6 +56,7 @@ class FlightSummary(object):
     def overlap(self, other):
         return max(0, min(self.time[-1], other.time[-1]) - max(self.time[0], other.time[0]))
 
+
 def timestamp(tztime):
     return (tztime - datetime.datetime(1970, 1, 1)).total_seconds()
 
@@ -68,12 +66,6 @@ def get_xyzbea(loc, lat0, lon0, alt0, SCALE):
     lon = loc[2]
     alt = loc[3]
     return np.append(np.array(geodetic_to_enu(lat, lon, alt, lat0, lon0, alt0)) / SCALE, loc[5])
-
-
-# def print_xyz(loc, lat0, lon0, alt0, SCALE):
-#     print(
-#         np.array2string(get_xyzbea(loc, lat0, lon0, alt0, SCALE), separator=',', precision=6).replace("[", "{").replace(
-#             "]", "},"))
 
 
 def min_dist_to_airport(start_t, end_t, flight, lat0, lon0, alt0):
@@ -91,20 +83,6 @@ def min_dist_to_airport(start_t, end_t, flight, lat0, lon0, alt0):
             min_dist = dist
 
     return min_dist
-
-
-# def interp_loc(tim, flight):
-#     flight_time = np.array([timestamp(t) for t in flight.time])
-#     lat = np.interp(tim, flight_time, flight.latitude)
-#     lon = np.interp(tim, flight_time, flight.longitude)
-#     alt = np.interp(tim, flight_time, flight.altitude)
-#     nlat = np.interp(tim, flight_time, flight.next_latitude)
-#     nlon = np.interp(tim, flight_time, flight.next_longtiude)
-#     bea = bearing(lat, lon, nlat, nlon)
-#
-#     loc = np.array([flight.ref, lat, lon, alt, tim, bea])
-#     return loc
-
 
 def bearing(lat1, lon1, lat2, lon2):
 
@@ -134,19 +112,6 @@ def haversine(lat1, lon1, lat2, lon2):
     # return 2 * math.asin(math.sqrt(
     #    (math.sin(0.5 * (lat1 - lat2))) ** 2 + math.cos(lat1) * math.cos(lat2) * (math.sin(0.5 * (lon1 - lon2))) ** 2))
 
-
-def dist_time(x, y):
-    tim1 = x[4]
-    tim2 = y[4]
-    ref1 = x[0]
-    ref2 = y[0]
-
-    if abs(tim1 - tim2) < 10 and ref1 != ref2:  # within 2 minutes
-        dist = dist_euclid(x, y)
-    else:
-        dist = np.inf
-
-    return dist
 
 
 def dist_euclid(x, y):
@@ -209,19 +174,6 @@ def get_flights(flights, params):
 
     return flights_arr, flight_summaries
 
-
-def get_min_max(flight_summaries):
-    xyzbea_min = np.Inf * np.ones((1,4))
-    xyzbea_max = -1.0 * np.Inf * np.ones((1,4))
-    # get range of xyzbea and time
-    for flight in flight_summaries:
-        xyzbea_max = np.maximum(xyzbea_max, np.amax(flight.loc_xyzbea, axis=0))
-        xyzbea_min = np.minimum(xyzbea_min, np.amin(flight.loc_xyzbea, axis=0))
-
-    xyzbea_max[0, 3] = 1.0 * math.pi
-    xyzbea_min[0, 3] = -1.0 * math.pi
-
-    return xyzbea_min, xyzbea_max
 
 def get_min_max_all(flight_summaries):
     xyzbea_min = np.Inf * np.ones((1, 4))

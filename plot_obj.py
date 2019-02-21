@@ -84,7 +84,7 @@ def main():
             planner_path_ind = planner_path_ind + np.array([offset_x, offset_y]).reshape((1, 2))
 
             fig, ax = plt.subplots()
-            ax.imshow(cost_min, extent=[0, max_x, 0, max_y], interpolation='spline16', alpha=0.5, origin='lower')
+            ax.imshow(cost_min, extent=[0, max_x, 0, max_y], cmap='Blues', interpolation='spline16', alpha=0.5, origin='lower')
 
             line1, = ax.plot(planner_path_ind[0,0], planner_path_ind[0,1], linewidth=5, color='forestgreen')
             for t in range(planner_path.shape[0]-1):

@@ -1,46 +1,12 @@
-import pickle
 import random
-from parameters import Parameters
-from process import get_flights, get_min_max_all
+from process import get_min_max_all
 from planning.grid import Grid
 from planning.dubins_objective import DubinsObjective
-from planning.arastar import ARAStar
-from planning.astar import AStar
 import configparser
 from planning.dubins_problem import DubinsProblem
-from plot_utils import plot_planner_expert
 import numpy as np
 
-def log(s, f=None):
-    print(s)
-    if f is not None:
-        f.write(s)
-        f.write('\n')
-        f.flush()
-
-
-def load_flight_data():
-    params = Parameters()
-    fnames = ['flights20160111', 'flights20160112', 'flights20160113']
-        #, 'flights0501', 'flights0502', 'flights0503']
-    flight_summaries = []
-    for fname in fnames:
-        flights = pickle.load(open('data/' + fname + '.pkl', 'rb'))
-        _, summaries = get_flights(flights,
-                                   params)  # read in flight data: id, start time, starting X,Y,Z,yaw, ending X,Y,Z,yaw
-        flight_summaries.extend(summaries)
-    return flight_summaries
-
-
-def make_planner(planner_type):
-    if planner_type == 'AStar':
-        planner = AStar
-    elif planner_type == 'ARAStar':
-        planner = ARAStar
-    else:
-        raise NotImplementedError
-    return planner
-
+from data_utils import log, load_flight_data, make_planner, save_lims
 
 def main():
     # read in parameters
@@ -56,6 +22,8 @@ def main():
     seed = int(config['random_seed'])
 
     log_file = open(config['grid_filename']+"_log.txt", "wb")
+    folder = 'model/'
+    fname = config['grid_filename']
 
     if seed >= 0:
         random.seed(seed)
@@ -66,6 +34,7 @@ def main():
 
     # # set up cost grid
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
+    save_lims(xyzbea_min, xyzbea_max, folder, fname)
 
     log('Initializing...')
     # set up cost grid
@@ -109,7 +78,7 @@ def main():
     # log('Saving grid...')
     # grid.save_grid()
 
-    min_ind = 5000
+    min_ind = 3000
     step_ind = 50
     save_ind = 250
 

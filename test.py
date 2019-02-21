@@ -1,12 +1,11 @@
 import configparser
 import random
-from process import get_min_max_all
-from train import load_flight_data, make_planner
 from plot_utils import plot_planner_expert
 from planning.grid import Grid
 from planning.dubins_objective import DubinsObjective
 
 from planning.dubins_problem import DubinsProblem
+from data_utils import load_flight_data, make_planner, load_lims
 
 
 def main():
@@ -27,18 +26,14 @@ def main():
     random.shuffle(flight_summaries)
 
     # set up cost grid
-    xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
+
     print('Loading cost...')
-    # set up cost grid
-    # n_iters = int(config['num_iterations'])
-    # n_samples = int(config['num_samples'])
-    grid = Grid(config, xyzbea_min, xyzbea_max)
-    #grid.load_grid()
-    fname = "model/grid16.pkl"
-    grid.load_grid(fname=fname)
+    folder = "model/"
+    fname = "grid19"
+    xyzbea_min, xyzbea_max = load_lims(folder, fname)
+    grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)
     obj = DubinsObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
-
 
     print('Planning...')
     for flight in flight_summaries:

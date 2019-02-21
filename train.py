@@ -1,5 +1,5 @@
 import random
-from process import get_min_max_all
+from data_process import get_min_max_all
 from planning.grid import Grid
 from planning.dubins_objective import DubinsObjective
 import configparser

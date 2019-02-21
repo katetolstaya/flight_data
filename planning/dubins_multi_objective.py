@@ -5,13 +5,14 @@ inf = float("inf")
 
 class DubinsMultiAirplaneObjective:
     def __init__(self, config, grid=None):
+        # TODO move to .cfg
         self.grid = grid
         self.sxy = 7000
         self.sz = 300
         self.obstacle_lims = np.array([self.sxy, self.sxy, self.sz])
         self.obstacle_cost = 0.01  # 1.0 #0.0000001 #1.0 #1000.0
         self.obstacle_step = np.array([0.1, 0.1, 0.01]).flatten()
-        self.clip = 500.0 #np.array([500.0, 500.0, 2.5]).flatten()
+        self.clip = 500.0
         self.obstacle_paths = {}
         #[5400. 5400.  140.]
 

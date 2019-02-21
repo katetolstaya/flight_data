@@ -1,6 +1,6 @@
 import pickle
-from data_parameters import Parameters
-from data_process import get_flights
+from parameters import Parameters
+from process import get_flights
 from planning.arastar import ARAStar
 from planning.astar import AStar
 

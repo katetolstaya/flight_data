@@ -1,7 +1,7 @@
 import pickle
 import datetime
 import numpy as np
-from data_geo import *
+from geo import *
 
 # Make dict to set line color for each flight ID
 def get_colors(flights_arr):

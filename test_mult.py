@@ -1,13 +1,12 @@
 import configparser
 import random
-from process import get_min_max_all
-from train import load_flight_data, make_planner
 from plot_utils import plot_planner_expert
 from planning.grid import Grid
 from planning.dubins_problem import DubinsProblem
 import matplotlib.pyplot as plt
-from train_mult import get_multi_airplane_segments, time_sync_flight_data
+
 from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
+from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data
 
 def main():
     config_file = 'params.cfg'
@@ -28,16 +27,15 @@ def main():
     lists = get_multi_airplane_segments(flight_summaries)
 
     # set up cost grid
-    xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
     print('Loading cost...')
-    # set up cost grid
-    # n_iters = int(config['num_iterations'])
-    # n_samples = int(config['num_samples'])
 
-    grid = Grid(config, xyzbea_min, xyzbea_max)
-    grid.load_grid()
+    folder = "model/"
+    fname = "grid19"
+    xyzbea_min, xyzbea_max = load_lims(folder, fname)
+    grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)
     obj = DubinsMultiAirplaneObjective(config, grid)
     obj_expert = DubinsMultiAirplaneObjective(config, grid)
+    planner = make_planner(config['planner_type'])
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
     for l in lists:

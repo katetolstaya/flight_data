@@ -4,6 +4,7 @@ from process import get_flights
 from planning.arastar import ARAStar
 from planning.astar import AStar
 
+
 def log(s, f=None):
     print(s)
     if f is not None:
@@ -12,10 +13,12 @@ def log(s, f=None):
         f.flush()
 
 
-def load_flight_data():
+def load_flight_data(fnames=None):
     params = Parameters()
-    fnames = ['flights20160111', 'flights20160112', 'flights20160113']
-        #, 'flights0501', 'flights0502', 'flights0503']
+
+    if fnames is None:
+        fnames = ['flights20160111', 'flights20160112', 'flights20160113'] #, 'flights0501', 'flights0502', 'flights0503']
+
     flight_summaries = []
     for fname in fnames:
         flights = pickle.load(open('data/' + fname + '.pkl', 'rb'))
@@ -44,3 +47,33 @@ def load_lims(folder, fname):
     xyzbea_min = pickle.load(open(folder + 'min_' + fname + ".pkl", "rb"))
     xyzbea_max = pickle.load(open(folder + 'max_' + fname + ".pkl", "rb"))
     return xyzbea_min, xyzbea_max
+
+def get_multi_airplane_segments(flight_summaries):
+    overlap_length = 200
+    lists = []
+    for s in flight_summaries:
+        added = False
+        for l in lists:
+            for s2 in l:
+                if s.overlap(s2) > overlap_length:
+                    added = True
+                    l.append(s)
+                    break
+            if added:
+                break
+
+        if not added:
+            lists.append([s])
+
+    # remove non-overlapping trajectories
+    # and sort each list of trajectories in order of airplane's start time
+    lists = [sorted(l, key=lambda x: x.time[0]) for l in lists if len(l) >= 2]
+    return lists
+
+
+def time_sync_flight_data(flights, problem):
+    paths = []
+    s = 0.0
+    for flight in flights:
+        paths.append(problem.resample_path_dt(flight.to_path(), s, problem.dt))
+    return paths

@@ -42,47 +42,14 @@ def main():
     obj = DubinsObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
-    log('T\tPlanner\tExpert\tDiff', log_file)
-    #initialize cost with one pass through the data
     dt = 1.0
     ind = 0
-    # if flight_summaries is not None:
-    #
-    #     for flight in flight_summaries:
-    #         # can't interpolate paths with len < 4
-    #         if flight.get_path_len() < 5:
-    #             continue
-    #
-    #         path = flight.to_path()
-    #         dense_path = DubinsProblem.resample_path_dt(path, s=0.1, dt=dt)
-    #         expert_cost = obj.integrate_path_cost(dense_path)
-    #
-    #         if ind % 10 == 0:
-    #             start, goal = flight.get_start_goal()
-    #             # try planning
-    #             node = planner(problem, start, goal, obj).plan(to)
-    #             if node is not None:
-    #                 planner_path = problem.reconstruct_path(node)
-    #                 planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=dt)
-    #
-    #                 planner_cost = obj.integrate_path_cost(planner_dense_path)
-    #                 path_diff = problem.compute_avg_path_diff(dense_path, planner_dense_path)
-    #                 log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
-    #             else:
-    #                 log(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf), log_file)
-    #
-    #         for i in range(0, n_iters):
-    #             grid.gradient_step(dense_path, -10.0)  # TODO
-    #             ind = ind + 1
-    #
-    # log('Saving grid...')
-    # grid.save_grid()
 
     min_ind = 3000
     step_ind = 50
     save_ind = 250
 
-    log('Planning...')
+    log('T\tPlanner\tExpert\tDiff', log_file)
     for i in range(0, n_iters):
 
         for flight in flight_summaries:

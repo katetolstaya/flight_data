@@ -1,25 +1,17 @@
 import numpy as np
 from planning.dubins_node import DubinsNode
-from math import exp
-
-# from dubins_objective import sigmoid, llu
-
 inf = float("inf")
 
 
 class DubinsMultiAirplaneObjective:
     def __init__(self, config, grid=None):
-        # self.others = others # a tuple of arrays for every other plane
         self.grid = grid
-        self.cost_type = config['grid_cost_type']
-        self.w = float(config['grid_weight'])  # 0.01 #20.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
-
-        self.sxy = 4000
+        self.sxy = 7000
         self.sz = 300
         self.obstacle_lims = np.array([self.sxy, self.sxy, self.sz])
-        self.obstacle_cost = 1.0 #0.0000001 #1.0 #1000.0
-        self.obstacle_step = 0.1 * np.ones((3,))
-
+        self.obstacle_cost = 0.01  # 1.0 #0.0000001 #1.0 #1000.0
+        self.obstacle_step = np.array([0.1, 0.1, 0.01]).flatten()
+        self.clip = 500.0 #np.array([500.0, 500.0, 2.5]).flatten()
         self.obstacle_paths = {}
 
     def get_cost(self, ind):
@@ -52,7 +44,6 @@ class DubinsMultiAirplaneObjective:
         self.obstacle_paths = {}
 
     def get_obstacle_threshold(self, diff):
-        #print self.obstacle_lims - diff
         return self.obstacle_cost * np.product(np.maximum(self.obstacle_lims - diff, 0))
 
     def get_obstacles_cost(self, ind):
@@ -66,36 +57,19 @@ class DubinsMultiAirplaneObjective:
         else:
             return 0
 
-    # def get_path_obstacle_distances(self, path):
-    #     distances = np.zeros((0, 3))
-    #     for j in range(0, path.shape[0]):
-    #         ind = path[j, :]
-    #         obstacles = self.obstacle_paths.get(ind[4])
-    #         if obstacles is not None:
-    #             for i in range(obstacles.shape[0]):
-    #                 diff = np.abs(obstacles[i, :] - ind[0:3])
-    #                 distances = np.vstack((distances, diff))
-    #     return distances
-
     def ind_path_to_costs(self, path):
-        costs = []
+        cost_sum = 0
         for j in range(0, path.shape[0]):
-            ind = path[j, :]
-            obstacles = self.obstacle_paths.get(ind[4])
-            if obstacles is not None:
-                for i in range(obstacles.shape[0]):
-                    diff = np.abs(obstacles[i, :] - ind[0:3])
-                    costs.append(self.get_obstacle_threshold(diff))
-        return np.asarray(costs)
+            cost_sum = cost_sum + self.get_obstacles_cost(path[j, :])
+        return cost_sum
 
-    def update_obstacle_lims(self, path_expert, path_planner, step): #TODO this is messed up
+    def update_obstacle_lims(self, path_expert, path_planner, step):
         costs_expert = self.ind_path_to_costs(path_expert)
-
         if path_planner is not None:
             costs_planner = self.ind_path_to_costs(path_planner)
-            delta = np.sum(costs_planner) - np.sum(costs_expert, axis=0)
+            delta = costs_planner - costs_expert
         else:
-            delta = -1.0 * np.sum(costs_expert, axis=0)
+            delta = -1.0 * costs_expert
 
-        self.obstacle_lims = self.obstacle_lims + self.obstacle_step * delta.flatten()
+        self.obstacle_lims = self.obstacle_lims + self.obstacle_step * np.clip(delta, -self.clip, self.clip)
         self.obstacle_lims = np.maximum(self.obstacle_lims, 0)

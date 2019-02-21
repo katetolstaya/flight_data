@@ -1,31 +1,35 @@
 import random
 import configparser
 from planning.dubins_problem import DubinsProblem
-from train import load_flight_data, make_planner, log
 from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
 from planning.grid import Grid
-from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data
-
+from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data, \
+    log
+import sys
 inf = float("inf")
+
 
 def main():
     # read in parameters
-    config_file = 'params.cfg'
+    if len(sys.argv) > 1:
+        config_file = sys.argv[1]
+    else:
+        config_file = 'cfg/params.cfg'
+
     config = configparser.ConfigParser()
     config.read(config_file)
     config = config['plan1']
 
     to = float(config['timeout'])
     n_iters = int(config['num_iterations'])
-    n_samples = int(config['num_samples'])
     seed = int(config['random_seed'])
-    log_file = open(config['grid_filename']+"_mult_log.txt", "wb")
+    log_file = open('logs/' + config['grid_filename'] + "_mult_log.txt", "wb")
 
     if seed >= 0:
         random.seed(seed)
 
     print('Processing trajectories...')
-    fnames = ['flights20160112'] #, 'flights20160112', 'flights20160113']
+    fnames = ['flights20160112']  # , 'flights20160112', 'flights20160113']
     flight_summaries = load_flight_data(fnames)
     lists = get_multi_airplane_segments(flight_summaries)
     random.shuffle(lists)
@@ -44,6 +48,7 @@ def main():
     # start training
     ind = 0
     for n in range(n_iters):
+        random.shuffle(lists)
         for l in lists:
 
             print('Planning for ' + str(len(l)) + ' airplanes...')
@@ -54,7 +59,6 @@ def main():
             timeout = False
 
             for expert_path in paths:
-                print(obj.obstacle_lims)
 
                 expert_path_ind = problem.path_to_ind(expert_path)
                 expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=1.0)
@@ -72,7 +76,8 @@ def main():
                         planner_cost = obj.integrate_path_cost(planner_path, planner_path_ind)
                         path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
-                        log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
+                        log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff) + '\t' + str(
+                            obj.obstacle_lims), log_file)
 
                         # gradient step
                         obj.update_obstacle_lims(expert_path_ind, planner_path_ind, 1.0)
@@ -88,15 +93,11 @@ def main():
                         timeout = True
 
                 if timeout:
-                    log(str(ind) + '\t' + '0' + '\t' + str(expert_cost) + '\t' + str(inf), log_file)
+                    log(str(ind) + '\t' + '0' + '\t' + str(expert_cost) + '\t' + str(inf) + '\t' + str(obj.obstacle_lims),
+                        log_file)
                     obj.update_obstacle_lims(expert_path_ind, None, 1.0)
                     obj_expert.obstacle_lims = obj.obstacle_lims
                     obj_expert.add_obstacle(expert_path_ind)
-                    print('Timeout')
-                    #break
-
-                # if n_updates > 0 and n_updates % 10 == 0:
-                #     obj.grid.save_grid()
 
 
 if __name__ == "__main__":

@@ -17,7 +17,8 @@ def load_flight_data(fnames=None):
     params = Parameters()
 
     if fnames is None:
-        fnames = ['flights20160111', 'flights20160112', 'flights20160113'] #, 'flights0501', 'flights0502', 'flights0503']
+        fnames = ['flights20160111', 'flights20160112',
+                  'flights20160113']  # , 'flights0501', 'flights0502', 'flights0503']
 
     flight_summaries = []
     for fname in fnames:
@@ -47,6 +48,7 @@ def load_lims(folder, fname):
     xyzbea_min = pickle.load(open(folder + 'min_' + fname + ".pkl", "rb"))
     xyzbea_max = pickle.load(open(folder + 'max_' + fname + ".pkl", "rb"))
     return xyzbea_min, xyzbea_max
+
 
 def get_multi_airplane_segments(flight_summaries):
     overlap_length = 200

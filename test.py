@@ -1,5 +1,6 @@
 import configparser
 import random
+import sys
 from plot_utils import plot_planner_expert
 from planning.grid import Grid
 from planning.dubins_objective import DubinsObjective
@@ -9,7 +10,11 @@ from data_utils import load_flight_data, make_planner, load_lims
 
 
 def main():
-    config_file = 'params.cfg'
+    if len(sys.argv) > 1:
+        config_file = sys.argv[1]
+    else:
+        config_file = 'cfg/params.cfg'
+
     config = configparser.ConfigParser()
     config.read(config_file)
     config = config['plan1']

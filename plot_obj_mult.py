@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import time
 import configparser
 import random
-
+import sys
 from planning.grid import Grid
 from planning.dubins_problem import DubinsProblem
 from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
@@ -12,7 +12,11 @@ from data_utils import load_flight_data, make_planner, load_lims, get_multi_airp
 
 
 def main():
-    config_file = 'params.cfg'
+    if len(sys.argv) > 1:
+        config_file = sys.argv[1]
+    else:
+        config_file = 'cfg/params.cfg'
+
     config = configparser.ConfigParser()
     config.read(config_file)
     config = config['plan1']

@@ -5,12 +5,18 @@ from planning.dubins_objective import DubinsObjective
 import configparser
 from planning.dubins_problem import DubinsProblem
 import numpy as np
+import sys
 
 from data_utils import log, load_flight_data, make_planner, save_lims
 
 def main():
     # read in parameters
-    config_file = 'params.cfg'
+
+    if len(sys.argv) > 1:
+        config_file = sys.argv[1]
+    else:
+        config_file = 'cfg/params.cfg'
+
     config = configparser.ConfigParser()
     config.read(config_file)
     config = config['plan1']
@@ -21,7 +27,7 @@ def main():
     n_samples = int(config['num_samples'])
     seed = int(config['random_seed'])
 
-    log_file = open(config['grid_filename']+"_log.txt", "wb")
+    log_file = open('logs/' + config['grid_filename']+"_log.txt", "wb")
     folder = 'model/'
     fname = config['grid_filename']
 

@@ -1,16 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
+import time
 import configparser
 import random
 from process import get_min_max_all
 from train import load_flight_data, make_planner
-from plot_utils import plot_planner_expert
 from planning.grid import Grid
 from planning.dubins_objective import DubinsObjective
 
 from planning.dubins_problem import DubinsProblem
+
 
 def main():
     config_file = 'params.cfg'
@@ -41,11 +41,11 @@ def main():
     obj = DubinsObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
-    max_x = 500
-    max_y = 500
+    max_x = 400
+    max_y = 400
 
-    offset_x = -100 #200
-    offset_y = -600
+    offset_x = -200 #200
+    offset_y = -700
     cost_min = np.ones((max_x, max_y)) * 100
     count = np.ones((max_x, max_y))
     cost_sum = np.ones((max_x, max_y)) * 100
@@ -63,6 +63,10 @@ def main():
     avg_cost = cost_sum / count
     cost_min = cost_min.T
 
+    plt.ion()
+
+    #lists = get_multi_airplane_segments(flight_summaries)
+
     flight_summaries.pop(0)
     for flight in flight_summaries:
         if flight.get_path_len() < 4:
@@ -77,11 +81,22 @@ def main():
             for t in range(planner_path.shape[0]):
                 temp = grid.ind_to_index(planner_path[t,:])
                 planner_path_ind[t,:] = temp[0:2]
+            planner_path_ind = planner_path_ind + np.array([offset_x, offset_y]).reshape((1, 2))
 
             fig, ax = plt.subplots()
             ax.imshow(cost_min, extent=[0, max_x, 0, max_y], interpolation='spline16', alpha=0.5, origin='lower')
-            ax.plot(planner_path_ind[:,0]+offset_x, planner_path_ind[:,1]+offset_y, linewidth=5, color='firebrick')
-            plt.show()
+
+            line1, = ax.plot(planner_path_ind[0,0], planner_path_ind[0,1], linewidth=5, color='forestgreen')
+            for t in range(planner_path.shape[0]-1):
+                print(t)
+                line1.set_xdata(planner_path_ind[0:t+1, 0])
+                line1.set_ydata(planner_path_ind[0:t+1, 1])
+                fig.canvas.draw()
+                fig.canvas.flush_events()
+                time.sleep(0.5)
+
+            # ax.plot(planner_path_ind[:,0]+offset_x, planner_path_ind[:,1]+offset_y, linewidth=5, color='firebrick')
+            # plt.show()
 
         else:
             print("timeout")

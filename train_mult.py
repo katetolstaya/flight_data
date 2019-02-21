@@ -50,54 +50,55 @@ def main():
     for n in range(n_iters):
         random.shuffle(lists)
         for l in lists:
+            paths = time_sync_flight_data(l, problem)
 
             print('Planning for ' + str(len(l)) + ' airplanes...')
-            paths = time_sync_flight_data(l, problem)
             obj.clear_obstacles()
             obj_expert.clear_obstacles()
-
             timeout = False
 
             for expert_path in paths:
 
+                # expert path computation
                 expert_path_ind = problem.path_to_ind(expert_path)
                 expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=1.0)
                 expert_cost = obj_expert.integrate_path_cost(expert_path, expert_path_ind)
 
+                # default values
+                planner_cost = 0
+                path_diff = inf
+                planner_path_ind = None
+
                 if not timeout:
+
                     # plan trajectory
                     node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
+
                     if node is not None:
 
-                        # get path in space from A* result
+                        # planner path computation
                         planner_path_ind = problem.reconstruct_path_ind(node)
                         planner_path = problem.ind_to_path(planner_path_ind)
                         planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
                         planner_cost = obj.integrate_path_cost(planner_path, planner_path_ind)
                         path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
-                        log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff) + '\t' + str(
-                            obj.obstacle_lims), log_file)
-
-                        # gradient step
-                        obj.update_obstacle_lims(expert_path_ind, planner_path_ind, 1.0)
-                        obj_expert.obstacle_lims = obj.obstacle_lims
-
-                        # add this plane's trajectory to obstacles for the next plane
-                        obj.add_obstacle(planner_path_ind)
-                        obj_expert.add_obstacle(expert_path_ind)
-                        n_updates = n_updates + 1
-
-                        ind = ind + 1
                     else:
                         timeout = True
 
-                if timeout:
-                    log(str(ind) + '\t' + '0' + '\t' + str(expert_cost) + '\t' + str(inf) + '\t' + str(obj.obstacle_lims),
-                        log_file)
-                    obj.update_obstacle_lims(expert_path_ind, None, 1.0)
-                    obj_expert.obstacle_lims = obj.obstacle_lims
-                    obj_expert.add_obstacle(expert_path_ind)
+                # gradient step
+                obj.update_obstacle_lims(expert_path_ind, planner_path_ind, 1.0)
+                obj_expert.obstacle_lims = obj.obstacle_lims
+
+                log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff) + '\t' + str(
+                    obj.obstacle_lims), log_file)
+
+                obj_expert.add_obstacle(expert_path_ind)
+                if not timeout:
+                    obj.add_obstacle(planner_path_ind)
+
+                ind = ind + 1
+
 
 
 if __name__ == "__main__":

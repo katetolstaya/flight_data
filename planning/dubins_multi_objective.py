@@ -5,16 +5,17 @@ inf = float("inf")
 
 class DubinsMultiAirplaneObjective:
     def __init__(self, config, grid=None):
-        # TODO move to .cfg
         self.grid = grid
-        self.sxy = 7000
-        self.sz = 300
+        self.sxy = float(config['obstacle_init_xy'])
+        self.sz = float(config['obstacle_init_z'])
         self.obstacle_lims = np.array([self.sxy, self.sxy, self.sz])
-        self.obstacle_cost = 0.01  # 1.0 #0.0000001 #1.0 #1000.0
-        self.obstacle_step = np.array([0.1, 0.1, 0.01]).flatten()
-        self.clip = 500.0
+        self.obstacle_cost = float(config['obstacle_cost']) # 1.0 #0.0000001 #1.0 #1000.0
+
+        self.step_xy = float(config['obstacle_step_xy'])
+        self.step_z = float(config['obstacle_step_z'])
+        self.obstacle_step = np.array([self.step_xy, self.step_xy, self.step_z]).flatten()
+        self.clip = float(config['obstacle_clip'])
         self.obstacle_paths = {}
-        #[5400. 5400.  140.]
 
     def get_cost(self, ind):
         if isinstance(ind, DubinsNode):
@@ -65,13 +66,29 @@ class DubinsMultiAirplaneObjective:
             cost_sum = cost_sum + self.get_obstacles_cost(path[j, :])
         return cost_sum
 
+    def compute_gradient(self, path):
+        grad_sum = np.zeros((3, ))
+        for j in range(0, path.shape[0]):
+            ind = path[j, :]
+            obstacles = self.obstacle_paths.get(ind[4])
+            if obstacles is not None:
+                for i in range(obstacles.shape[0]):
+                    diff = np.maximum(self.obstacle_lims - np.abs(obstacles[i, :] - ind[0:3]), 0)
+                    prod_grad = self.obstacle_cost * np.array([diff[1]*diff[2], diff[0]* diff[2], diff[0] * diff[1]])
+                    grad_sum = grad_sum + prod_grad.flatten()
+
+        return grad_sum
+
+
     def update_obstacle_lims(self, path_expert, path_planner, step):
-        costs_expert = self.ind_path_to_costs(path_expert)
+        grad_expert = self.compute_gradient(path_expert)
+        #costs_expert = self.ind_path_to_costs(path_expert)
         if path_planner is not None:
-            costs_planner = self.ind_path_to_costs(path_planner)
-            delta = costs_planner - costs_expert
+            grad_planner = self.compute_gradient(path_planner)
+            #costs_planner = self.ind_path_to_costs(path_planner)
+            delta = grad_planner - grad_expert
         else:
-            delta = -1.0 * costs_expert
+            delta = -1.0 * grad_expert
 
         self.obstacle_lims = self.obstacle_lims + self.obstacle_step * np.clip(delta, -self.clip, self.clip)
         self.obstacle_lims = np.maximum(self.obstacle_lims, 0)

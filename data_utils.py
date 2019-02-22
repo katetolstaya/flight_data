@@ -12,6 +12,19 @@ def log(s, f=None):
         f.write('\n')
         f.flush()
 
+def log_fname(s, fname, append=True):
+    print(s)
+
+    if append:
+        f = open(fname, "w+")
+    else:
+        f = open(fname, "wb")
+
+    f.write(s)
+    f.write('\n')
+    f.flush()
+    f.close()
+
 
 def load_flight_data(fnames=None):
     params = Parameters()

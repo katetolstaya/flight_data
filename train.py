@@ -7,7 +7,7 @@ from planning.dubins_problem import DubinsProblem
 import numpy as np
 import sys
 
-from data_utils import log, load_flight_data, make_planner, save_lims
+from data_utils import log_fname, load_flight_data, make_planner, save_lims
 
 def main():
     # read in parameters
@@ -27,7 +27,7 @@ def main():
     n_samples = int(config['num_samples'])
     seed = int(config['random_seed'])
 
-    log_file = open('logs/' + config['grid_filename']+"_log.txt", "wb")
+    log_file_name = 'logs/' + config['grid_filename']+"_log.txt"
     folder = 'model/'
     fname = config['grid_filename']
 
@@ -42,7 +42,7 @@ def main():
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
     save_lims(xyzbea_min, xyzbea_max, folder, fname)
 
-    log('Initializing...')
+    print('Initializing...')
     # set up cost grid
     grid = Grid(config, xyzbea_min, xyzbea_max)
     obj = DubinsObjective(config, grid)
@@ -51,11 +51,11 @@ def main():
     dt = 1.0
     ind = 0
 
-    min_ind = 4000
-    step_ind = 50
-    save_ind = 250
+    min_ind = int(config['min_ind'])
+    step_ind = int(config['step_ind'])
+    save_ind = int(config['save_ind'])
 
-    log('T\tPlanner\tExpert\tDiff', log_file)
+    log_fname('T\tPlanner\tExpert\tDiff', log_file_name, False)
     for i in range(0, n_iters):
 
         for flight in flight_summaries:
@@ -84,7 +84,7 @@ def main():
                     planner_cost = obj.integrate_path_cost(planner_dense_path)
                     path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
-                    log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file)
+                    log_fname(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file_name)
                     # print(planner_cost - expert_cost)
                     grid.gradient_step(planner_dense_path, 10.0)
                     grid.gradient_step(expert_dense_path, -10.0)
@@ -94,12 +94,12 @@ def main():
                 expert_only = True
 
             if expert_only:
-                log(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf), log_file)
+                log_fname(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf), log_file_name)
                 grid.gradient_step(expert_dense_path, -10.0)
 
             ind = ind + 1
             if ind % save_ind == 0:
-                log('Saving grid...')
+                print('Saving grid...')
                 obj.grid.save_grid()
 
     obj.grid.save_grid()

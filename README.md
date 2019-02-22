@@ -40,6 +40,8 @@ To modify experiment parameters, change `params.cfg` and retrain the model.
 
 ## To do for code:
 1) Move text parsing code into its own folder
+2) Move plotting utils
+3) Organize compressed dataset
 
 ## Future directions
 1) Demo in a simulator

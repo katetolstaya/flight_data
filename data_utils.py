@@ -16,7 +16,7 @@ def log_fname(s, fname, append=True):
     print(s)
 
     if append:
-        f = open(fname, "w+")
+        f = open(fname, "a")
     else:
         f = open(fname, "wb")
 

@@ -75,6 +75,10 @@ def main():
     lists.pop(0)
     lists.pop(0)
     lists.pop(0)
+    lists.pop(0)
+    lists.pop(0)
+    lists.pop(0)
+    lists.pop(0)
 
     for l in lists:
 

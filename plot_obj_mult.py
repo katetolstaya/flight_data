@@ -131,10 +131,10 @@ def main():
             lines = []
             markers = []
             fig, ax = plt.subplots()
-            ax.imshow(-1.0 * cost_min, extent=[0, max_x, 0, max_y], cmap='Greens', interpolation='spline16',  origin='lower') #alpha=0.5,
+            ax.imshow(-1.0 * cost_min, extent=[0, max_x, 0, max_y], cmap='Greens', interpolation='spline16',  origin='lower', alpha=0.5)
 
             for i in range(len(learner_trajs)):
-                line, = ax.plot([0,1], [0,1], linewidth=2, color=colors[i])
+                line, = ax.plot([0,1], [0,1], linewidth=4, color=colors[i])
                 lines.append(line)
 
             for i in range(len(learner_trajs)):

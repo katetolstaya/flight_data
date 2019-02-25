@@ -32,11 +32,8 @@ The expert trajectory is denoted in green, while the learner's sequence of motio
 To modify experiment parameters, change `params.cfg` and retrain the model.
 
 ## To do for paper:
-0) Arrows instead of circles for animated plot??
-1) Record video of 4 planes landing and get screenshots
-2) Plot of IRL cost while learning cost grid
-3) Plot of IRL cost while learning spacing
-4) Demo with slower or faster airplanes
+1) Demo with slower or faster airplanes
+2) Record videos for video
 
 ## To do for code:
 1) Move text parsing code into its own folder

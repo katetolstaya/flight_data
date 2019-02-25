@@ -141,12 +141,16 @@ def main():
                 marker, = ax.plot([0,1], [0,1], linewidth=0, marker='o', markersize=10, color=colors[i])
                 markers.append(marker)
 
+            time_text = plt.text(-2.0, 5, '', fontsize=18)
+
             lines.reverse()
             markers.reverse()
 
             inds = np.zeros((n_learners,),dtype=np.int)
 
             for t in np.arange(start_time, end_time, dt):
+                print(t)
+                #time_text.set_text(" {0:.2f} s".format(t-start_time))
                 for i in reversed(range(n_learners)):
                     if learner_trajs[i].shape[0] > inds[i] and t <= learner_trajs[i][inds[i], 4]:
                         lines[i].set_xdata(learner_trajs[i][0:inds[i]+1, 0])

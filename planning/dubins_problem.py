@@ -29,9 +29,9 @@ class DubinsProblem:
         # self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
         # self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z
 
-        #self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
+        # self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
         self.ps_theta = np.array([0.0, -1.0, 1.0, -0.1, 0.1]) * self.v_theta
-        #self.ps_z = np.array([0.0, -1.0, 1.0, -0.1, 0.1]) * self.v_z
+        # self.ps_z = np.array([0.0, -1.0, 1.0, -0.1, 0.1]) * self.v_z
         self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z
 
         self.max_ps_z = max(self.ps_z)
@@ -239,7 +239,7 @@ class DubinsProblem:
     def resample_path(path, n_ts=400):
 
         s = 0.1
-        ts = np.linspace( start=path[0, 4], stop=path[-1, 4], num=n_ts)
+        ts = np.linspace(start=path[0, 4], stop=path[-1, 4], num=n_ts)
 
         s_x = UnivariateSpline(path[:, 4], path[:, 0], s=s)
         s_y = UnivariateSpline(path[:, 4], path[:, 1], s=s)

@@ -84,7 +84,7 @@ def main():
                     planner_cost = obj.integrate_path_cost(planner_dense_path)
                     path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
-                    log_fname(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff), log_file_name, True)
+                    log_fname(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff))
                     # print(planner_cost - expert_cost)
                     grid.gradient_step(planner_dense_path, 10.0)
                     grid.gradient_step(expert_dense_path, -10.0)
@@ -94,12 +94,12 @@ def main():
                 expert_only = True
 
             if expert_only:
-                log_fname(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf), log_file_name, True)
+                log_fname(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf))
                 grid.gradient_step(expert_dense_path, -10.0)
 
             ind = ind + 1
             if ind % save_ind == 0:
-                print('Saving grid...')
+                #print('Saving grid...')
                 obj.grid.save_grid()
 
     obj.grid.save_grid()

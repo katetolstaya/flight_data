@@ -98,9 +98,9 @@ def main():
                 grid.gradient_step(expert_dense_path, -10.0)
 
             ind = ind + 1
-            if ind % save_ind == 0:
-                #print('Saving grid...')
-                obj.grid.save_grid()
+            # if ind % save_ind == 0:
+            #     #print('Saving grid...')
+            #     obj.grid.save_grid()
 
     obj.grid.save_grid()
 

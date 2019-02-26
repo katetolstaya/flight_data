@@ -137,15 +137,6 @@ class DubinsProblem:
         return DubinsNode(loc, self.hash_coeffs, parent_node)
 
     def heuristic(self, start_node, end_node):
-        # if np.all(np.less(np.abs(start_node.loc[0:3]-end_node.loc[0:3]), 3*self.goal_res[0:3])):
-        #     min_cost = inf
-        #     for n in range(0, 10):
-        #         new_end = end_node.loc + np.random.uniform(low=-self.goal_res, high=self.goal_res)
-        #         min_cost = min(min_cost, self.dubins_distance(start_node.loc, new_end))
-        #
-        #         #min_cost = min(min_cost, self.dubins_distance(start_node.loc, end_node.loc, self.bc * (1+(1.0*np.random.random()))))
-        #     return min_cost
-        # else:
         return self.dubins_distance(start_node.loc, end_node.loc)
 
     def dubins_distance(self, si, gi, bc=None):
@@ -188,7 +179,7 @@ class DubinsProblem:
         # return np.all(np.less(np.abs(start.loc - goal.loc), self.goal_res))
 
     def path_to_ind(self, path):
-        ind_path = np.zeros(path.shape)
+        ind_path = np.zeros(path.shape, dtype=int)
 
         for i in range(path.shape[0]):
             ind_path[i, :] = self.to_ind(path[i, :])
@@ -211,7 +202,7 @@ class DubinsProblem:
         return np.flip(path, 0)
 
     def reconstruct_path_ind(self, n):
-        path = np.zeros((0, 5))
+        path = np.zeros((0, 5), dtype=int)
         while n.parent is not None:
             path = np.concatenate((path, n.loc.reshape(1, -1)), axis=0)
             n = n.parent

@@ -82,7 +82,7 @@ class ARAStar:
 
             for (n, c) in self.prob.get_neighbors(s):  # check each neighbor
                 if self.obj is not None:
-                    c = c * (1.0 + self.obj.get_cost(n))
+                    c = c * self.obj.get_cost(n)
                 n_cost = c + self.g[s]
 
                 if n_cost < inf and (n not in self.g or n_cost < self.g[n]):

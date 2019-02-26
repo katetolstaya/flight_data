@@ -7,7 +7,7 @@ from planning.dubins_problem import DubinsProblem
 import numpy as np
 import sys
 
-from data_utils import log_fname, load_flight_data, make_planner, save_lims
+from data_utils import log_fname, load_flight_data, make_planner, save_lims, log
 
 def main():
     # read in parameters
@@ -42,7 +42,7 @@ def main():
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
     save_lims(xyzbea_min, xyzbea_max, folder, fname)
 
-    print('Initializing...')
+    #print('Initializing...')
     # set up cost grid
     grid = Grid(config, xyzbea_min, xyzbea_max)
     obj = DubinsObjective(config, grid)
@@ -55,7 +55,7 @@ def main():
     step_ind = int(config['step_ind'])
     save_ind = int(config['save_ind'])
 
-    log_fname('T\tPlanner\tExpert\tDiff', log_file_name, False)
+    log('T\tPlanner\tExpert\tDiff')
     for i in range(0, n_iters):
 
         for flight in flight_summaries:
@@ -84,7 +84,7 @@ def main():
                     planner_cost = obj.integrate_path_cost(planner_dense_path)
                     path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
-                    log_fname(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff))
+                    log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff))
                     # print(planner_cost - expert_cost)
                     grid.gradient_step(planner_dense_path, 10.0)
                     grid.gradient_step(expert_dense_path, -10.0)
@@ -94,7 +94,7 @@ def main():
                 expert_only = True
 
             if expert_only:
-                log_fname(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf))
+                log(str(ind) + '\t' + '0\t' + str(expert_cost) + '\t' + str(np.inf))
                 grid.gradient_step(expert_dense_path, -10.0)
 
             ind = ind + 1

@@ -7,6 +7,7 @@ from planning.grid import Grid
 from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data, \
     log
 import sys
+
 inf = float("inf")
 
 
@@ -79,7 +80,7 @@ def main():
 
                         # planner path computation
                         planner_path_ind = problem.reconstruct_path_ind(node)
-                        planner_path = problem.reconstruct_path(node) #problem.ind_to_path(planner_path_ind)
+                        planner_path = problem.reconstruct_path(node)  # problem.ind_to_path(planner_path_ind)
                         planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=dt)
                         planner_cost = obj.integrate_path_cost(planner_path, planner_path_ind)
                         path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
@@ -96,13 +97,11 @@ def main():
                 # log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff) + '\t' + str(
                 #     obj.obstacle_lims), log_file)
 
-
                 obj_expert.add_obstacle(expert_path_ind)
                 if not timeout:
                     obj.add_obstacle(planner_path_ind)
 
                 ind = ind + 1
-
 
 
 if __name__ == "__main__":

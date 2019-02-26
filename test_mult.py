@@ -6,7 +6,7 @@ from planning.dubins_problem import DubinsProblem
 import matplotlib.pyplot as plt
 import sys
 
-from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
+from planning.dubins_objective import DubinsObjective
 from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data
 
 def main():
@@ -38,8 +38,8 @@ def main():
     fname = "grid19"
     xyzbea_min, xyzbea_max = load_lims(folder, fname)
     grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)
-    obj = DubinsMultiAirplaneObjective(config, grid)
-    obj_expert = DubinsMultiAirplaneObjective(config, grid)
+    obj = DubinsObjective(config, grid)
+    obj_expert = DubinsObjective(config, grid)
     planner = make_planner(config['planner_type'])
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 

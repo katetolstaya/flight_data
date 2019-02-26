@@ -61,8 +61,12 @@ class Grid:
 
         if val is None:
             val = self.default_val
-        # if val>100:
-        #     print(val)
+        return val
+
+    def get_grid_index(self, x):
+        val = self.grid.get(x)
+        if val is None:
+            val = self.default_val
         return val
 
     def ind_to_index(self, x):

@@ -1,7 +1,8 @@
 import random
 import configparser
 from planning.dubins_problem import DubinsProblem
-from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
+from planning.dubins_objective import DubinsObjective
+# from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
 from planning.grid import Grid
 from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data, \
     log
@@ -38,13 +39,13 @@ def main():
     fname = "grid19"
     xyzbea_min, xyzbea_max = load_lims(folder, fname)
     grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)
-    obj = DubinsMultiAirplaneObjective(config, grid)
-    obj_expert = DubinsMultiAirplaneObjective(config, grid)
+
     planner = make_planner(config['planner_type'])
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
+    obj = DubinsObjective(config, grid)
+    obj_expert = DubinsObjective(config, grid)
 
-    n_updates = 0
-
+    dt = 1.0
     # start training
     ind = 0
     for n in range(n_iters):
@@ -61,7 +62,7 @@ def main():
 
                 # expert path computation
                 expert_path_ind = problem.path_to_ind(expert_path)
-                expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=1.0)
+                expert_dense_path = DubinsProblem.resample_path_dt(expert_path, s=0.1, dt=dt)
                 expert_cost = obj_expert.integrate_path_cost(expert_path, expert_path_ind)
 
                 # default values
@@ -78,8 +79,8 @@ def main():
 
                         # planner path computation
                         planner_path_ind = problem.reconstruct_path_ind(node)
-                        planner_path = problem.ind_to_path(planner_path_ind)
-                        planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=1.0)
+                        planner_path = problem.reconstruct_path(node) #problem.ind_to_path(planner_path_ind)
+                        planner_dense_path = DubinsProblem.resample_path_dt(planner_path, s=0.1, dt=dt)
                         planner_cost = obj.integrate_path_cost(planner_path, planner_path_ind)
                         path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
@@ -87,11 +88,14 @@ def main():
                         timeout = True
 
                 # gradient step
-                obj.update_obstacle_lims(expert_path_ind, planner_path_ind, 1.0)
+                obj.update_obstacle_lims(expert_path_ind, planner_path_ind)
                 obj_expert.obstacle_lims = obj.obstacle_lims
 
                 log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff) + '\t' + str(
-                    obj.obstacle_lims), log_file)
+                    obj.obstacle_lims))
+                # log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff) + '\t' + str(
+                #     obj.obstacle_lims), log_file)
+
 
                 obj_expert.add_obstacle(expert_path_ind)
                 if not timeout:

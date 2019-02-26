@@ -7,7 +7,7 @@ import random
 import sys
 from planning.grid import Grid
 from planning.dubins_problem import DubinsProblem
-from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
+from planning.dubins_objective import DubinsObjective
 from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data
 
 
@@ -37,7 +37,7 @@ def main():
     fname = "grid19"
     xyzbea_min, xyzbea_max = load_lims(folder, fname)
     grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)
-    obj = DubinsMultiAirplaneObjective(config, grid)
+    obj = DubinsObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
     max_x = 300
@@ -64,7 +64,7 @@ def main():
     #colors = ['forestgreen', 'firebrick', 'purple', 'darkblue', 'darkorange']
     plt.ion()
 
-    obj = DubinsMultiAirplaneObjective(config, grid)
+    obj = DubinsObjective(config, grid)
     #obj_expert = DubinsMultiAirplaneObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 

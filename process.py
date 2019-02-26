@@ -1,7 +1,7 @@
-import pickle
 import datetime
 import numpy as np
 from geo import *
+
 
 # Make dict to set line color for each flight ID
 def get_colors(flights_arr):
@@ -9,6 +9,7 @@ def get_colors(flights_arr):
     for i in range(0, np.shape(flights_arr)[0]):
         colors[flights_arr[i, 0]] = 'C' + str(i % 10 + 1)
     return colors
+
 
 class FlightSummary(object):
 
@@ -26,13 +27,13 @@ class FlightSummary(object):
         self.loc_xyzbea = np.zeros((self.T, 4))
 
         for k in range(0, self.T):
-            #bea = bearing(lat[k], lon[k], next_lat[k], next_lon[k])
+            # bea = bearing(lat[k], lon[k], next_lat[k], next_lon[k])
 
-            if k == self.T - 1: # or k == self.T - 2:  # last bearing would be wrong otherwise
-                bea = self.loc_xyzbea[k-1, 3]
+            if k == self.T - 1:  # or k == self.T - 2:  # last bearing would be wrong otherwise
+                bea = self.loc_xyzbea[k - 1, 3]
             else:
                 # bea = bearing(lat[k], lon[k], next_lat[k], next_lon[k])
-                bea = bearing(lat[k], lon[k], lat[k+1], lon[k+1])
+                bea = bearing(lat[k], lon[k], lat[k + 1], lon[k + 1])
 
             loc_lla = np.array([flight.ref, lat[k], lon[k], alt[k], self.time[k], bea])
             self.loc_xyzbea[k, :] = np.array(get_xyzbea(loc_lla, params.lat0, params.lon0, params.alt0, params.scale))
@@ -84,15 +85,15 @@ def min_dist_to_airport(start_t, end_t, flight, lat0, lon0, alt0):
 
     return min_dist
 
-def bearing(lat1, lon1, lat2, lon2):
 
+def bearing(lat1, lon1, lat2, lon2):
     lat1 = math.radians(lat1)
     lat2 = math.radians(lat2)
     lon1 = math.radians(lon1)
     lon2 = math.radians(lon2)
     x = math.sin(lon2 - lon1) * math.cos(lat2)
     y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(lon2 - lon1)
-    brng = math.atan2(y, x) #+ math.pi/2.0 #+ math.pi/2 # bearing in radians! #TODO
+    brng = math.atan2(y, x)  # + math.pi/2.0 #+ math.pi/2 # bearing in radians! #TODO
     return brng
 
 
@@ -113,7 +114,6 @@ def haversine(lat1, lon1, lat2, lon2):
     #    (math.sin(0.5 * (lat1 - lat2))) ** 2 + math.cos(lat1) * math.cos(lat2) * (math.sin(0.5 * (lon1 - lon2))) ** 2))
 
 
-
 def dist_euclid(x, y):
     lat1 = x[1]
     lat2 = y[1]
@@ -131,8 +131,8 @@ def get_min_time(flights):
         min_time = np.minimum(np.min(np.array([timestamp(t) for t in flights[k].time])), min_time)
     return min_time
 
-def get_flights(flights, params):
 
+def get_flights(flights, params):
     params.min_time = get_min_time(flights)
     params.start_t = params.min_time + params.center_t - params.range_t
     params.end_t = params.min_time + params.center_t + params.range_t
@@ -148,12 +148,12 @@ def get_flights(flights, params):
     for i, k in enumerate(sorted(flights.keys())):
         flight = flights[k]
 
-        if np.min(np.abs(flight.latitude)) == 0.0 or (flight.arrival != airport): # and flight.arrival != airport):
+        if np.min(np.abs(flight.latitude)) == 0.0 or (flight.arrival != airport):  # and flight.arrival != airport):
             continue
 
         # time within range
         in_range = np.array([timestamp(t) < params.end_t and timestamp(t) > params.start_t for t in flight.time])
-        time_delta = datetime.timedelta(0,params.time_delta)
+        time_delta = datetime.timedelta(0, params.time_delta)
         if flight.departure == airport:
             in_range = np.logical_and(in_range, np.array([t < flight.time[0] + time_delta for t in flight.time]))
         elif flight.arrival == airport:
@@ -162,9 +162,8 @@ def get_flights(flights, params):
         # alt within range
         in_range = np.logical_and(in_range, np.array([af < params.alt_lim for af in flight.altitude]))
 
-
         if min_dist_to_airport(params.start_t, params.end_t, flight, lat0, lon0, alt0) > params.dist_lim:
-            continue # far from airport
+            continue  # far from airport
         elif np.sum(in_range) < 3:  # fewer than 3 points in path
             continue
         else:

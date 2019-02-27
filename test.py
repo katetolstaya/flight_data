@@ -7,7 +7,11 @@ from planning.dubins_objective import DubinsObjective
 
 from planning.dubins_problem import DubinsProblem
 from data_utils import load_flight_data, make_planner, load_lims
+from matplotlib import rc
 
+rc('text', usetex=True)
+font = {'family': 'Times New Roman', 'weight': 'bold', 'size': 14}
+rc('font', **font)
 
 def main():
     if len(sys.argv) > 1:

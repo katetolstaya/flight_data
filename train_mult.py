@@ -24,7 +24,7 @@ def main():
     to = float(config['timeout'])
     n_iters = int(config['num_iterations'])
     seed = int(config['random_seed'])
-    log_file = open('logs/' + config['grid_filename'] + "_mult_log.txt", "wb")
+    #log_file = open('logs/' + config['grid_filename'] + "_mult_log.txt", "wb")
 
     if seed >= 0:
         random.seed(seed)

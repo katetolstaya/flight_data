@@ -39,12 +39,12 @@ def plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline
     x = planner_spline[:, 0].flatten()
     y = planner_spline[:, 1].flatten()
     z = planner_spline[:, 2].flatten()
-    ax.plot(xs=x, ys=y, zs=z)
+    ax.plot(xs=x, ys=y, zs=z, color=colors[1])
 
     x = expert_spline[:, 0].flatten()
     y = expert_spline[:, 1].flatten()
     z = expert_spline[:, 2].flatten()
-    ax.plot(xs=x, ys=y, zs=z)
+    ax.plot(xs=x, ys=y, zs=z, color=colors[0])
 
     plt.show()
 

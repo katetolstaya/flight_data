@@ -26,7 +26,7 @@ def main():
         random.seed(seed)
 
     # get plane data
-    flight_summaries = load_flight_data()
+    flight_summaries = load_flight_data(config)
     random.shuffle(flight_summaries)
 
     lists = get_multi_airplane_segments(flight_summaries)

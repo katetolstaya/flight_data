@@ -13,7 +13,13 @@ def get_colors(flights_arr):
 
 class FlightSummary(object):
 
-    def __init__(self, flight, in_range, params):
+    def __init__(self, flight, in_range, config):
+
+        lat0 = float(config['lat0'])
+        lon0 = float(config['lon0'])
+        alt0 = float(config['alt0'])
+        scale = float(config['scale'])
+
         self.ref = flight.ref
         self.time = np.array([timestamp(t) for t in flight.time])[in_range]
         self.T = len(self.time)
@@ -36,7 +42,7 @@ class FlightSummary(object):
                 bea = bearing(lat[k], lon[k], lat[k + 1], lon[k + 1])
 
             loc_lla = np.array([flight.ref, lat[k], lon[k], alt[k], self.time[k], bea])
-            self.loc_xyzbea[k, :] = np.array(get_xyzbea(loc_lla, params.lat0, params.lon0, params.alt0, params.scale))
+            self.loc_xyzbea[k, :] = np.array(get_xyzbea(loc_lla, lat0, lon0, alt0, scale))
 
     def get_row(self):
         return np.concatenate(([self.ref, self.time[0]], self.loc_xyzbea[0, :], self.loc_xyzbea[self.T - 1, :]), axis=0)
@@ -132,15 +138,21 @@ def get_min_time(flights):
     return min_time
 
 
-def get_flights(flights, params):
-    params.min_time = get_min_time(flights)
-    params.start_t = params.min_time + params.center_t - params.range_t
-    params.end_t = params.min_time + params.center_t + params.range_t
+def get_flights(flights, config):
+    td = int(config['time_delta'])
+    min_time = float(config['min_time'])
+    center_t = float(config['center_t'])
+    range_t = float(config['range_t'])
 
-    airport = params.airport
-    lat0 = params.lat0
-    lon0 = params.lon0
-    alt0 = params.alt0
+    start_t = min_time + center_t - range_t
+    end_t = min_time + center_t + range_t
+
+    airport = config['airport']
+    lat0 = float(config['lat0'])
+    lon0 = float(config['lon0'])
+    alt0 = float(config['alt0'])
+    alt_lim = float(config['alt_lim'])
+    dist_lim = float(config['dist_lim'])
 
     flights_arr = np.zeros((0, 10), dtype=float)
     flight_summaries = []
@@ -152,22 +164,22 @@ def get_flights(flights, params):
             continue
 
         # time within range
-        in_range = np.array([timestamp(t) < params.end_t and timestamp(t) > params.start_t for t in flight.time])
-        time_delta = datetime.timedelta(0, params.time_delta)
+        in_range = np.array([timestamp(t) < end_t and timestamp(t) > start_t for t in flight.time])
+        time_delta = datetime.timedelta(0, td)
         if flight.departure == airport:
             in_range = np.logical_and(in_range, np.array([t < flight.time[0] + time_delta for t in flight.time]))
         elif flight.arrival == airport:
             in_range = np.logical_and(in_range, np.array([t > flight.time[-1] - time_delta for t in flight.time]))
 
         # alt within range
-        in_range = np.logical_and(in_range, np.array([af < params.alt_lim for af in flight.altitude]))
+        in_range = np.logical_and(in_range, np.array([af < alt_lim for af in flight.altitude]))
 
-        if min_dist_to_airport(params.start_t, params.end_t, flight, lat0, lon0, alt0) > params.dist_lim:
+        if min_dist_to_airport(start_t, end_t, flight, lat0, lon0, alt0) > dist_lim:
             continue  # far from airport
         elif np.sum(in_range) < 3:  # fewer than 3 points in path
             continue
         else:
-            flight_summary = FlightSummary(flight, in_range, params)
+            flight_summary = FlightSummary(flight, in_range, config)
             flight_summaries.append(flight_summary)
             flights_arr = np.vstack([flights_arr, flight_summary.get_row()])
 

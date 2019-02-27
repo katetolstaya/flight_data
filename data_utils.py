@@ -26,9 +26,7 @@ def log_fname(s, fname, append=True):
     f.close()
 
 
-def load_flight_data(fnames=None):
-    params = Parameters()
-
+def load_flight_data(config, fnames=None):
     if fnames is None:
         fnames = ['flights20160111', 'flights20160112',
                   'flights20160113']  # , 'flights0501', 'flights0502', 'flights0503']
@@ -36,8 +34,8 @@ def load_flight_data(fnames=None):
     flight_summaries = []
     for fname in fnames:
         flights = pickle.load(open('data/' + fname + '.pkl', 'rb'))
-        _, summaries = get_flights(flights,
-                                   params)  # read in flight data: id, start time, starting X,Y,Z,yaw, ending X,Y,Z,yaw
+        _, summaries = get_flights(flights, config)
+        # read in flight data: id, start time, starting X,Y,Z,yaw, ending X,Y,Z,yaw
         flight_summaries.extend(summaries)
     return flight_summaries
 

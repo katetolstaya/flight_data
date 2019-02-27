@@ -32,7 +32,7 @@ def main():
 
     print('Processing trajectories...')
     fnames = ['flights20160112']  # , 'flights20160112', 'flights20160113']
-    flight_summaries = load_flight_data(fnames)
+    flight_summaries = load_flight_data(config, fnames)
     lists = get_multi_airplane_segments(flight_summaries)
     random.shuffle(lists)
 

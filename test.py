@@ -27,7 +27,7 @@ def main():
         random.seed(seed)
 
     # get plane data
-    flight_summaries = load_flight_data()
+    flight_summaries = load_flight_data(config)
     random.shuffle(flight_summaries)
 
     # set up cost grid

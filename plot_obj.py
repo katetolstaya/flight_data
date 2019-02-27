@@ -29,7 +29,7 @@ def main():
 
     # get plane data
     fnames = ['flights20160112'] #, 'flights20160112', 'flights20160113']
-    flight_summaries = load_flight_data(fnames)
+    flight_summaries = load_flight_data(config, fnames)
 
     print('Loading cost...')
     folder = "model/"

@@ -42,7 +42,7 @@ def main():
 
     print('Planning...')
     for flight in flight_summaries:
-        if flight.get_path_len() < 4:
+        if flight.get_num_waypoints() < 4:
             continue
         start, goal = flight.get_start_goal()
         node = planner(problem, start, goal, obj).plan(to)

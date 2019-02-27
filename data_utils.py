@@ -1,5 +1,4 @@
 import pickle
-from parameters import Parameters
 from process import get_flights
 from planning.arastar import ARAStar
 from planning.astar import AStar
@@ -34,7 +33,7 @@ def load_flight_data(config, fnames=None):
     flight_summaries = []
     for fname in fnames:
         flights = pickle.load(open('data/' + fname + '.pkl', 'rb'))
-        _, summaries = get_flights(flights, config)
+        summaries = get_flights(flights, config)
         # read in flight data: id, start time, starting X,Y,Z,yaw, ending X,Y,Z,yaw
         flight_summaries.extend(summaries)
     return flight_summaries

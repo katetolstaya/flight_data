@@ -60,7 +60,7 @@ def main():
 
         for flight in flight_summaries:
             # can't interpolate paths with len < 4
-            if flight.get_path_len() < 4:
+            if flight.get_num_waypoints() < 4:
                 continue
 
             start, goal = flight.get_start_goal()

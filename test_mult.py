@@ -9,6 +9,7 @@ import sys
 from planning.dubins_objective import DubinsObjective
 from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data
 
+
 def main():
     if len(sys.argv) > 1:
         config_file = sys.argv[1]
@@ -84,6 +85,7 @@ def main():
             else:
                 print('Timeout')
                 break
+
 
 if __name__ == "__main__":
     main()

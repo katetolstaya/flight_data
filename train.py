@@ -9,6 +9,7 @@ import sys
 
 from data_utils import log_fname, load_flight_data, make_planner, save_lims, log
 
+
 def main():
     # read in parameters
 
@@ -27,7 +28,7 @@ def main():
     n_samples = int(config['num_samples'])
     seed = int(config['random_seed'])
 
-    log_file_name = 'logs/' + config['grid_filename']+"_log.txt"
+    log_file_name = 'logs/' + config['grid_filename'] + "_log.txt"
     folder = 'model/'
     fname = config['grid_filename']
 
@@ -42,7 +43,7 @@ def main():
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
     save_lims(xyzbea_min, xyzbea_max, folder, fname)
 
-    #print('Initializing...')
+    # print('Initializing...')
     # set up cost grid
     grid = Grid(config, xyzbea_min, xyzbea_max)
     obj = DubinsObjective(config, grid)

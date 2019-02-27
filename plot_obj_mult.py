@@ -29,7 +29,7 @@ def main():
         random.seed(seed)
 
     # get plane data
-    fnames = ['flights20160112'] #, 'flights20160112', 'flights20160113']
+    fnames = ['flights20160112']  # , 'flights20160112', 'flights20160113']
     flight_summaries = load_flight_data(config, fnames)
 
     print('Loading cost...')
@@ -58,14 +58,13 @@ def main():
 
     cost_min = cost_min.T
 
-
     colors = ['orangered', 'gold', 'dodgerblue', 'orchid']
-    #colors = ['#78C74D', "#BDAE33", "#BC5A33", "#A0373F"]
-    #colors = ['forestgreen', 'firebrick', 'purple', 'darkblue', 'darkorange']
+    # colors = ['#78C74D', "#BDAE33", "#BC5A33", "#A0373F"]
+    # colors = ['forestgreen', 'firebrick', 'purple', 'darkblue', 'darkorange']
     plt.ion()
 
     obj = DubinsObjective(config, grid)
-    #obj_expert = DubinsMultiAirplaneObjective(config, grid)
+    # obj_expert = DubinsMultiAirplaneObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
     print('Syncing trajectories...')
@@ -93,7 +92,7 @@ def main():
             if len(learner_trajs) >= 4:
                 break
 
-            print('Planning #' + str(len(learner_trajs)+1))
+            print('Planning #' + str(len(learner_trajs) + 1))
 
             # expert_path_ind = problem.path_to_ind(expert_path)
             # planner_path_grid = np.zeros((expert_path_ind.shape[0], 5))
@@ -124,21 +123,22 @@ def main():
         n_learners = len(learner_trajs)
         if n_learners > 1:
 
-            start_time = learner_trajs[0][0,4]
-            dt = learner_trajs[0][1,4] - learner_trajs[0][0,4]
-            end_time = learner_trajs[-1][-1,4]
+            start_time = learner_trajs[0][0, 4]
+            dt = learner_trajs[0][1, 4] - learner_trajs[0][0, 4]
+            end_time = learner_trajs[-1][-1, 4]
 
             lines = []
             markers = []
             fig, ax = plt.subplots()
-            ax.imshow(-1.0 * cost_min, extent=[0, max_x, 0, max_y], cmap='Greens', interpolation='spline16',  origin='lower', alpha=0.5)
+            ax.imshow(-1.0 * cost_min, extent=[0, max_x, 0, max_y], cmap='Greens', interpolation='spline16',
+                      origin='lower', alpha=0.5)
 
             for i in range(len(learner_trajs)):
-                line, = ax.plot([0,1], [0,1], linewidth=4, color=colors[i])
+                line, = ax.plot([0, 1], [0, 1], linewidth=4, color=colors[i])
                 lines.append(line)
 
             for i in range(len(learner_trajs)):
-                marker, = ax.plot([0,1], [0,1], linewidth=0, marker='o', markersize=10, color=colors[i])
+                marker, = ax.plot([0, 1], [0, 1], linewidth=0, marker='o', markersize=10, color=colors[i])
                 markers.append(marker)
 
             time_text = plt.text(-2.0, 5, '', fontsize=18)
@@ -146,15 +146,15 @@ def main():
             lines.reverse()
             markers.reverse()
 
-            inds = np.zeros((n_learners,),dtype=np.int)
+            inds = np.zeros((n_learners,), dtype=np.int)
 
             for t in np.arange(start_time, end_time, dt):
                 print(t)
-                #time_text.set_text(" {0:.2f} s".format(t-start_time))
+                # time_text.set_text(" {0:.2f} s".format(t-start_time))
                 for i in reversed(range(n_learners)):
                     if learner_trajs[i].shape[0] > inds[i] and t <= learner_trajs[i][inds[i], 4]:
-                        lines[i].set_xdata(learner_trajs[i][0:inds[i]+1, 0])
-                        lines[i].set_ydata(learner_trajs[i][0:inds[i]+1, 1])
+                        lines[i].set_xdata(learner_trajs[i][0:inds[i] + 1, 0])
+                        lines[i].set_ydata(learner_trajs[i][0:inds[i] + 1, 1])
                         markers[i].set_xdata(learner_trajs[i][inds[i], 0])
                         markers[i].set_ydata(learner_trajs[i][inds[i], 1])
                         inds[i] = inds[i] + 1
@@ -162,7 +162,6 @@ def main():
                     if learner_trajs[i][-1, 4] < t:
                         markers[i].set_marker("None")
                         markers[i].set_marker("None")
-
 
                 fig.canvas.draw()
                 fig.canvas.flush_events()

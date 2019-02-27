@@ -11,6 +11,7 @@ def log(s, f=None):
         f.write('\n')
         f.flush()
 
+
 def log_fname(s, fname, append=True):
     print(s)
 

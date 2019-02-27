@@ -1,12 +1,11 @@
 import random
+import sys
 import configparser
 from planning.dubins_problem import DubinsProblem
 from planning.dubins_objective import DubinsObjective
-# from planning.dubins_multi_objective import DubinsMultiAirplaneObjective
 from planning.grid import Grid
 from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data, \
     log
-import sys
 
 inf = float("inf")
 

@@ -28,7 +28,7 @@ def main():
         random.seed(seed)
 
     # get plane data
-    fnames = ['flights20160112'] #, 'flights20160112', 'flights20160113']
+    fnames = ['flights20160112']  # , 'flights20160112', 'flights20160113']
     flight_summaries = load_flight_data(config, fnames)
 
     print('Loading cost...')
@@ -71,24 +71,24 @@ def main():
 
             planner_path_ind = np.zeros((planner_path.shape[0], 2))
             for t in range(planner_path.shape[0]):
-                temp = grid.ind_to_index(planner_path[t,:])
-                planner_path_ind[t,:] = temp[0:2]
+                temp = grid.ind_to_index(planner_path[t, :])
+                planner_path_ind[t, :] = temp[0:2]
             planner_path_ind = planner_path_ind + np.array([offset_x, offset_y]).reshape((1, 2))
 
             fig, ax = plt.subplots()
-            ax.imshow(cost_min, extent=[0, max_x, 0, max_y], cmap='Blues', interpolation='spline16', alpha=0.5, origin='lower')
+            ax.imshow(cost_min, extent=[0, max_x, 0, max_y], cmap='Blues', interpolation='spline16', alpha=0.5,
+                      origin='lower')
 
-            line1, = ax.plot(planner_path_ind[0,0], planner_path_ind[0,1], linewidth=5, color='forestgreen')
-            for t in range(planner_path.shape[0]-1):
-                line1.set_xdata(planner_path_ind[0:t+1, 0])
-                line1.set_ydata(planner_path_ind[0:t+1, 1])
+            line1, = ax.plot(planner_path_ind[0, 0], planner_path_ind[0, 1], linewidth=5, color='forestgreen')
+            for t in range(planner_path.shape[0] - 1):
+                line1.set_xdata(planner_path_ind[0:t + 1, 0])
+                line1.set_ydata(planner_path_ind[0:t + 1, 1])
                 fig.canvas.draw()
                 fig.canvas.flush_events()
                 time.sleep(0.5)
 
         else:
             print("timeout")
-
 
 
 if __name__ == "__main__":

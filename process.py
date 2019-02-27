@@ -3,14 +3,6 @@ import numpy as np
 from geo import *
 
 
-# Make dict to set line color for each flight ID
-def get_colors(flights_arr):
-    colors = {}
-    for i in range(0, np.shape(flights_arr)[0]):
-        colors[flights_arr[i, 0]] = 'C' + str(i % 10 + 1)
-    return colors
-
-
 class FlightSummary(object):
 
     def __init__(self, flight, in_range, config):
@@ -44,9 +36,6 @@ class FlightSummary(object):
             loc_lla = np.array([flight.ref, lat[k], lon[k], alt[k], self.time[k], bea])
             self.loc_xyzbea[k, :] = np.array(get_xyzbea(loc_lla, lat0, lon0, alt0, scale))
 
-    def get_row(self):
-        return np.concatenate(([self.ref, self.time[0]], self.loc_xyzbea[0, :], self.loc_xyzbea[self.T - 1, :]), axis=0)
-
     def to_path(self):
         path = np.concatenate((self.loc_xyzbea, self.time.reshape((-1, 1))), axis=1)
         return path
@@ -57,7 +46,7 @@ class FlightSummary(object):
         goal = np.array([xyzb[-1, 0], xyzb[-1, 1], xyzb[-1, 2], xyzb[-1, 3], self.time[-1]]).flatten()
         return start, goal
 
-    def get_path_len(self):
+    def get_num_waypoints(self):
         return self.loc_xyzbea.shape[0]
 
     def overlap(self, other):
@@ -116,9 +105,6 @@ def haversine(lat1, lon1, lat2, lon2):
     d = R * c
     return d
 
-    # return 2 * math.asin(math.sqrt(
-    #    (math.sin(0.5 * (lat1 - lat2))) ** 2 + math.cos(lat1) * math.cos(lat2) * (math.sin(0.5 * (lon1 - lon2))) ** 2))
-
 
 def dist_euclid(x, y):
     lat1 = x[1]
@@ -140,9 +126,9 @@ def get_min_time(flights):
 
 def get_flights(flights, config):
     td = int(config['time_delta'])
-    min_time = float(config['min_time'])
-    center_t = float(config['center_t'])
-    range_t = float(config['range_t'])
+    min_time = get_min_time(flights)
+    center_t = int(config['center_t'])
+    range_t = int(config['range_t'])
 
     start_t = min_time + center_t - range_t
     end_t = min_time + center_t + range_t
@@ -154,7 +140,6 @@ def get_flights(flights, config):
     alt_lim = float(config['alt_lim'])
     dist_lim = float(config['dist_lim'])
 
-    flights_arr = np.zeros((0, 10), dtype=float)
     flight_summaries = []
 
     for i, k in enumerate(sorted(flights.keys())):
@@ -163,27 +148,31 @@ def get_flights(flights, config):
         if np.min(np.abs(flight.latitude)) == 0.0 or (flight.arrival != airport):  # and flight.arrival != airport):
             continue
 
-        # time within range
+        # timestamp in range between start_t and end_t
         in_range = np.array([timestamp(t) < end_t and timestamp(t) > start_t for t in flight.time])
+
+        # trim the beginning or end of trajectory to discard actual landing
         time_delta = datetime.timedelta(0, td)
         if flight.departure == airport:
             in_range = np.logical_and(in_range, np.array([t < flight.time[0] + time_delta for t in flight.time]))
-        elif flight.arrival == airport:
+        if flight.arrival == airport:
             in_range = np.logical_and(in_range, np.array([t > flight.time[-1] - time_delta for t in flight.time]))
 
-        # alt within range
+        # altitude within range
         in_range = np.logical_and(in_range, np.array([af < alt_lim for af in flight.altitude]))
 
-        if min_dist_to_airport(start_t, end_t, flight, lat0, lon0, alt0) > dist_lim:
-            continue  # far from airport
-        elif np.sum(in_range) < 3:  # fewer than 3 points in path
+        # fewer than 3 points in path
+        if np.sum(in_range) < 3:
             continue
-        else:
-            flight_summary = FlightSummary(flight, in_range, config)
-            flight_summaries.append(flight_summary)
-            flights_arr = np.vstack([flights_arr, flight_summary.get_row()])
 
-    return flights_arr, flight_summaries
+        # too far from the aiport
+        if min_dist_to_airport(start_t, end_t, flight, lat0, lon0, alt0) > dist_lim:
+            continue
+
+        flight_summary = FlightSummary(flight, in_range, config)
+        flight_summaries.append(flight_summary)
+
+    return flight_summaries
 
 
 def get_min_max_all(flight_summaries):

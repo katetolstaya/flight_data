@@ -10,6 +10,11 @@ from planning.grid import Grid
 from planning.dubins_problem import DubinsProblem
 from planning.dubins_objective import DubinsObjective
 from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data
+from matplotlib import rc
+
+rc('text', usetex=True)
+font = {'family': 'Times New Roman', 'weight': 'bold', 'size': 14}
+rc('font', **font)
 
 
 def main():
@@ -30,7 +35,7 @@ def main():
         random.seed(seed)
 
     # get plane data
-    fnames = ['flights20160112']  # , 'flights20160112', 'flights20160113']
+    fnames = ['flights20160112' ] # 'flights20160112', 'flights20160113']
     flight_summaries = load_flight_data(config, fnames)
 
     print('Loading cost...')
@@ -71,7 +76,7 @@ def main():
 
     lists = get_multi_airplane_segments(flight_summaries)
 
-    plot_expert = False
+    plot_expert = True
 
     # found an interesting case - #13 out of the list
     for _ in range(12):
@@ -135,13 +140,17 @@ def main():
             lines = []
             markers = []
             circles = []
-            fig, ax = plt.subplots()
+            fig, ax = plt.subplots(facecolor='white')
 
             ax.set_xlim([0, max_x])
             ax.set_ylim([0, max_y])
 
             ax.imshow(-1.0 * cost_min, extent=[0, max_x, 0, max_y], cmap='Greens', interpolation='spline16',
                       origin='lower', alpha=0.5)
+
+            time_text = plt.text(20.0, 20.0, '', fontsize=18)
+
+            plt.axis('off')
 
             for i in range(len(learner_trajs)):
                 line, = ax.plot([-100, -99], [-100, -99], linewidth=4, color=colors[i])
@@ -178,6 +187,8 @@ def main():
                     if learner_trajs[i].shape[0] <= inds[i] or learner_trajs[i][-1, 4] < t:
                         markers[i].set_marker("None")
                         circles[i].set_radius(0.0)
+
+                time_text.set_text("{0:d} s".format(int((t-start_time)/10.0)))
 
                 fig.canvas.draw()
                 fig.canvas.flush_events()

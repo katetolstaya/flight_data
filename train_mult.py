@@ -30,7 +30,8 @@ def main():
         random.seed(seed)
 
     print('Processing trajectories...')
-    fnames = ['flights20160112']  # , 'flights20160112', 'flights20160113']
+    # why does using more than one file mess things up? since when is the time local?
+    fnames = ['flights20160111' ] #, 'flights20160112', 'flights20160113']
     flight_summaries = load_flight_data(config, fnames)
     lists = get_multi_airplane_segments(flight_summaries)
     random.shuffle(lists)

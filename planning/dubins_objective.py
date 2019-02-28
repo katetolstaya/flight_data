@@ -81,7 +81,6 @@ class DubinsObjective:
             obstacles = self.obstacle_paths.get(int(ind[4]))
             if obstacles is not None:
                 for i in range(obstacles.shape[0]):
-
                     diff = np.maximum(self.obstacle_lims - np.abs(obstacles[i, :] - ind[0:3]), 0)
                     if np.product(diff) > 0:
                         prod_grad = self.obstacle_cost * np.array([diff[1]*diff[2], diff[0]* diff[2], diff[0] * diff[1]])
@@ -89,42 +88,17 @@ class DubinsObjective:
 
         return grad_sum
 
-    def update_obstacle_lims(self, path_expert, path_planner):
-        grad_expert = self.compute_gradient(path_expert)
+    @staticmethod
+    def update_obstacle_lims(obj_expert, path_expert, obj_planner, path_planner):
+        grad_expert = obj_expert.compute_gradient(path_expert)
         if path_planner is not None:
-            grad_planner = self.compute_gradient(path_planner)
+            grad_planner = obj_planner.compute_gradient(path_planner)
             delta = grad_planner - grad_expert
         else:
             delta = -1.0 * grad_expert
 
-        self.obstacle_lims = self.obstacle_lims + self.obstacle_step * np.clip(delta, -self.clip, self.clip)
-        self.obstacle_lims = np.maximum(self.obstacle_lims, 0)
+        obj_planner.obstacle_lims = obj_planner.obstacle_lims + obj_planner.obstacle_step * np.clip(delta, -obj_planner.clip, obj_planner.clip)
+        obj_planner.obstacle_lims = np.maximum(obj_planner.obstacle_lims, 0)
 
-
-    # def __init__(self, config, grid=None):
-    #     # self.others = others # a tuple of arrays for every other plane
-    #     self.grid = grid
-    #     self.cost_type = config['grid_cost_type']
-    #     self.w = float(config['grid_weight'])  # 0.01 #20.0 #0.5 # the expected cost for the cost is 1.5x the heuristic
-    #
-    # def get_cost(self, ind):
-    #     if isinstance(ind, DubinsNode):
-    #         ind = ind.loc
-    #     return self.grid.get(ind)
-    #
-    # def integrate_path_cost(self, path):
-    #     cost = 0
-    #     for i in range(1, np.size(path, 0)):
-    #         # integrate grid cost
-    #         euclid_dist = np.linalg.norm(path[i - 1, 0:3] - path[i, 0:3])
-    #         if self.grid is not None:
-    #             cost = cost + (1.0 + self.get_cost(path[i, :])) * euclid_dist
-    #         else:
-    #             cost = cost + euclid_dist
-    #
-    #         if cost is inf:
-    #             return inf
-    #
-    #     return cost
-
+        obj_expert.obstacle_lims = obj_planner.obstacle_lims
 

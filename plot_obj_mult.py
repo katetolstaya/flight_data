@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.patches as patches
 import time
 import configparser
 import random
@@ -34,7 +35,7 @@ def main():
 
     print('Loading cost...')
     folder = "model/"
-    fname = "grid21"
+    fname = "grid19"
     xyzbea_min, xyzbea_max = load_lims(folder, fname)
     grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)
     obj = DubinsObjective(config, grid)
@@ -45,6 +46,8 @@ def main():
 
     offset_x = -250
     offset_y = -750
+
+    ob = [25, 25]  # half of the primitive index width because plotting in grid resolution
 
     offset = np.array([offset_x, offset_y, 0, 0, 0]).reshape((1, 5))
     cost_min = np.ones((max_x, max_y)) * 100
@@ -135,6 +138,7 @@ def main():
 
             lines = []
             markers = []
+            rectangles = []
             fig, ax = plt.subplots()
             ax.imshow(-1.0 * cost_min, extent=[0, max_x, 0, max_y], cmap='Greens', interpolation='spline16',
                       origin='lower', alpha=0.5)
@@ -147,7 +151,13 @@ def main():
                 marker, = ax.plot([0, 1], [0, 1], linewidth=0, marker='o', markersize=10, color=colors[i])
                 markers.append(marker)
 
-            time_text = plt.text(-2.0, 5, '', fontsize=18)
+                # Loop over data points; create box from errors at each point
+
+                rect = patches.Rectangle((0 - ob[0], 0 - ob[1]), 2*ob[0], 2*ob[1], linewidth=1, edgecolor='r', facecolor='none')
+                rectangles.append(rect)
+
+                # Add the patch to the Axes
+                ax.add_patch(rect)
 
             lines.reverse()
             markers.reverse()
@@ -163,11 +173,15 @@ def main():
                         lines[i].set_ydata(learner_trajs[i][0:inds[i] + 1, 1])
                         markers[i].set_xdata(learner_trajs[i][inds[i], 0])
                         markers[i].set_ydata(learner_trajs[i][inds[i], 1])
+                        rectangles[i].set_x(learner_trajs[i][inds[i], 0] - ob[0])
+                        rectangles[i].set_y(learner_trajs[i][inds[i], 1] - ob[1])
                         inds[i] = inds[i] + 1
 
                     if learner_trajs[i][-1, 4] < t:
                         markers[i].set_marker("None")
                         markers[i].set_marker("None")
+                        rectangles[i].set_height(0)
+                        rectangles[i].set_width(0)
 
                 fig.canvas.draw()
                 fig.canvas.flush_events()

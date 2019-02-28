@@ -97,8 +97,8 @@ class DubinsObjective:
         :return:
         :rtype:
         """
-        temp = self.obstacle_lims - np.array([np.linalg.norm([diff[0], diff[1]]), diff[2]])
-        return self.obstacle_cost * np.product(np.maximum(temp, 0))
+        xy_dist = np.sqrt(diff[0] * diff[0] + diff[1] * diff[1])
+        return self.obstacle_cost * np.product(np.maximum(self.obstacle_lims - np.array([xy_dist, diff[2]]), 0))
 
     def get_obstacles_cost(self, ind):
         """
@@ -138,7 +138,7 @@ class DubinsObjective:
                     diff_z = max(self.obstacle_lims[1] - diff[2], 0)
 
                     # the derivative has the terms swapped
-                    if diff_xy * diff_z > 0:
+                    if diff_xy > 0 and diff_z > 0:
                         grad_sum = grad_sum + self.obstacle_cost * np.array([diff_z, diff_xy])
 
         return grad_sum

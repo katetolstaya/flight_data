@@ -14,17 +14,12 @@ class DubinsObjective:
         :param grid:
         :type grid:
         """
-        self.grid = grid
-        self.sx = float(config['obstacle_init_x'])
-        self.sy = float(config['obstacle_init_y'])
-        self.sz = float(config['obstacle_init_z'])
-        self.obstacle_lims = np.array([self.sx, self.sy, self.sz])
-        self.obstacle_cost = float(config['obstacle_cost'])
 
-        self.step_xy = float(config['obstacle_step_xy'])
-        self.step_z = float(config['obstacle_step_z'])
-        self.obstacle_step = np.array([self.step_xy, self.step_xy, self.step_z]).flatten()
-        self.clip = float(config['obstacle_clip'])
+        self.obstacle_cost = float(config['obstacle_cost'])
+        self.obstacle_lims = np.array([float(config['obstacle_init_xy']), float(config['obstacle_init_z'])])
+        self.obstacle_step = np.array([float(config['obstacle_step_xy']), float(config['obstacle_step_z'])])
+        self.clip_grad = float(config['obstacle_clip'])
+        self.grid = grid
         self.obstacle_paths = {}
 
     def get_cost(self, ind):
@@ -102,7 +97,8 @@ class DubinsObjective:
         :return:
         :rtype:
         """
-        return self.obstacle_cost * np.product(np.maximum(self.obstacle_lims - diff, 0))
+        temp = self.obstacle_lims - np.array([np.linalg.norm([diff[0], diff[1]]), diff[2]])
+        return self.obstacle_cost * np.product(np.maximum(temp, 0))
 
     def get_obstacles_cost(self, ind):
         """
@@ -130,17 +126,20 @@ class DubinsObjective:
         :return:
         :rtype:
         """
-        grad_sum = np.zeros((3,))
+        grad_sum = np.zeros((2,))
         for j in range(0, path.shape[0]):
             ind = path[j, :]
             obstacles = self.obstacle_paths.get(int(ind[4]))
             if obstacles is not None:
                 for i in range(obstacles.shape[0]):
-                    diff = np.maximum(self.obstacle_lims - np.abs(obstacles[i, :] - ind[0:3]), 0)
-                    if np.product(diff) > 0:
-                        prod_grad = self.obstacle_cost * np.array(
-                            [diff[1] * diff[2], diff[0] * diff[2], diff[0] * diff[1]])
-                        grad_sum = grad_sum + prod_grad.flatten()
+
+                    diff = np.abs(obstacles[i, :] - ind[0:3])
+                    diff_xy = max(self.obstacle_lims[0] - np.linalg.norm([diff[0], diff[1]]), 0)
+                    diff_z = max(self.obstacle_lims[1] - diff[2], 0)
+
+                    # the derivative has the terms swapped
+                    if diff_xy * diff_z > 0:
+                        grad_sum = grad_sum + self.obstacle_cost * np.array([diff_z, diff_xy])
 
         return grad_sum
 
@@ -164,7 +163,7 @@ class DubinsObjective:
         else:
             delta = -1.0 * grad_expert
 
-        obj.obstacle_lims = obj.obstacle_lims + obj.obstacle_step * np.clip(delta, -obj.clip, obj.clip)
+        obj.obstacle_lims = obj.obstacle_lims + obj.obstacle_step * np.clip(delta, -obj.clip_grad, obj.clip_grad)
         obj.obstacle_lims = np.maximum(obj.obstacle_lims, 0)
 
         obj_expert.obstacle_lims = obj.obstacle_lims

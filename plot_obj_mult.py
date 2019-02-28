@@ -38,16 +38,14 @@ def main():
     fname = "grid19"
     xyzbea_min, xyzbea_max = load_lims(folder, fname)
     grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)
-    obj = DubinsObjective(config, grid)
-    problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
-    max_x = 300
-    max_y = 300
+    max_x = 250
+    max_y = 250
 
     offset_x = -250
     offset_y = -750
 
-    ob = [25, 25]  # half of the primitive index width because plotting in grid resolution
+    radius = float(config['obstacle_init_xy']) * grid.lookup_res[0]
 
     offset = np.array([offset_x, offset_y, 0, 0, 0]).reshape((1, 5))
     cost_min = np.ones((max_x, max_y)) * 100
@@ -61,13 +59,12 @@ def main():
 
     cost_min = cost_min.T
 
-    colors = ['orangered', 'gold', 'dodgerblue', 'orchid']
+    colors = ['gold', 'dodgerblue', 'orchid', 'orangered']
     # colors = ['#78C74D', "#BDAE33", "#BC5A33", "#A0373F"]
     # colors = ['forestgreen', 'firebrick', 'purple', 'darkblue', 'darkorange']
     plt.ion()
 
     obj = DubinsObjective(config, grid)
-    # obj_expert = DubinsMultiAirplaneObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
 
     print('Syncing trajectories...')
@@ -76,13 +73,9 @@ def main():
 
     plot_expert = False
 
-    lists.pop(0)
-    lists.pop(0)
-    lists.pop(0)
-    lists.pop(0)
-    lists.pop(0)
-    lists.pop(0)
-    lists.pop(0)
+    # found an interesting case - #13 out of the list
+    for _ in range(12):
+        lists.pop(0)
 
     for l in lists:
 
@@ -102,6 +95,8 @@ def main():
             if plot_expert:
 
                 expert_path_ind = problem.path_to_ind(expert_path)
+                print(obj.integrate_path_cost(expert_path, expert_path_ind))
+                obj.add_obstacle(expert_path_ind)
                 planner_path_grid = np.zeros((expert_path_ind.shape[0], 5))
                 for t in range(expert_path_ind.shape[0]):
                     ind = np.append(np.asarray(grid.ind_to_index(expert_path_ind[t, :])), expert_path_ind[t, 4])
@@ -110,12 +105,12 @@ def main():
                 learner_trajs.append(planner_path_grid)
 
             else:
-
                 node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
 
                 if node is not None:
                     planner_path = problem.reconstruct_path(node)
                     planner_path_ind = problem.reconstruct_path_ind(node)
+                    print(obj.integrate_path_cost(planner_path, planner_path_ind))
                     obj.add_obstacle(planner_path_ind)
 
                     planner_path_grid = np.zeros((planner_path_ind.shape[0], 5))
@@ -124,6 +119,7 @@ def main():
                         planner_path_grid[t, :] = ind
                     planner_path_grid = planner_path_grid + offset
                     learner_trajs.append(planner_path_grid)
+
 
                 else:
                     print('Timeout')
@@ -138,29 +134,29 @@ def main():
 
             lines = []
             markers = []
-            rectangles = []
+            circles = []
             fig, ax = plt.subplots()
+
+            ax.set_xlim([0, max_x])
+            ax.set_ylim([0, max_y])
+
             ax.imshow(-1.0 * cost_min, extent=[0, max_x, 0, max_y], cmap='Greens', interpolation='spline16',
                       origin='lower', alpha=0.5)
 
             for i in range(len(learner_trajs)):
-                line, = ax.plot([0, 1], [0, 1], linewidth=4, color=colors[i])
+                line, = ax.plot([-100, -99], [-100, -99], linewidth=4, color=colors[i])
                 lines.append(line)
 
             for i in range(len(learner_trajs)):
-                marker, = ax.plot([0, 1], [0, 1], linewidth=0, marker='o', markersize=10, color=colors[i])
+                marker, = ax.plot([-100, -99], [-100, -99], linewidth=0, marker='o', markersize=10, color=colors[i])
                 markers.append(marker)
-
-                # Loop over data points; create box from errors at each point
-
-                rect = patches.Rectangle((0 - ob[0], 0 - ob[1]), 2*ob[0], 2*ob[1], linewidth=1, edgecolor='r', facecolor='none')
-                rectangles.append(rect)
-
-                # Add the patch to the Axes
-                ax.add_patch(rect)
+                circle = plt.Circle((-100, -100), radius, edgecolor=colors[i], fill=False)
+                circles.append(circle)
+                ax.add_patch(circle)
 
             lines.reverse()
             markers.reverse()
+            circles.reverse()
 
             inds = np.zeros((n_learners,), dtype=np.int)
 
@@ -168,20 +164,20 @@ def main():
                 print(t)
                 # time_text.set_text(" {0:.2f} s".format(t-start_time))
                 for i in reversed(range(n_learners)):
-                    if learner_trajs[i].shape[0] > inds[i] and t <= learner_trajs[i][inds[i], 4]:
+
+                    # show next time step
+                    while learner_trajs[i].shape[0] > inds[i] and learner_trajs[i][inds[i], 4] < t:
                         lines[i].set_xdata(learner_trajs[i][0:inds[i] + 1, 0])
                         lines[i].set_ydata(learner_trajs[i][0:inds[i] + 1, 1])
                         markers[i].set_xdata(learner_trajs[i][inds[i], 0])
                         markers[i].set_ydata(learner_trajs[i][inds[i], 1])
-                        rectangles[i].set_x(learner_trajs[i][inds[i], 0] - ob[0])
-                        rectangles[i].set_y(learner_trajs[i][inds[i], 1] - ob[1])
+                        circles[i].center = learner_trajs[i][inds[i], 0], learner_trajs[i][inds[i], 1]
                         inds[i] = inds[i] + 1
 
-                    if learner_trajs[i][-1, 4] < t:
+                    # traj done
+                    if learner_trajs[i].shape[0] <= inds[i] or learner_trajs[i][-1, 4] < t:
                         markers[i].set_marker("None")
-                        markers[i].set_marker("None")
-                        rectangles[i].set_height(0)
-                        rectangles[i].set_width(0)
+                        circles[i].set_radius(0.0)
 
                 fig.canvas.draw()
                 fig.canvas.flush_events()

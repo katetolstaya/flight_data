@@ -15,15 +15,15 @@ class DubinsObjective:
         :type grid:
         """
         self.grid = grid
-        self.sxy = float(config['obstacle_init_xy'])
+        self.sx = float(config['obstacle_init_x'])
+        self.sy = float(config['obstacle_init_y'])
         self.sz = float(config['obstacle_init_z'])
-        self.obstacle_lims = np.array([self.sxy, self.sxy, self.sz])
+        self.obstacle_lims = np.array([self.sx, self.sy, self.sz])
         self.obstacle_cost = float(config['obstacle_cost'])
 
-        self.step_x = float(config['obstacle_step_x'])
-        self.step_y = float(config['obstacle_step_y'])
+        self.step_xy = float(config['obstacle_step_xy'])
         self.step_z = float(config['obstacle_step_z'])
-        self.obstacle_step = np.array([self.step_x, self.step_y, self.step_z]).flatten()
+        self.obstacle_step = np.array([self.step_xy, self.step_xy, self.step_z]).flatten()
         self.clip = float(config['obstacle_clip'])
         self.obstacle_paths = {}
 

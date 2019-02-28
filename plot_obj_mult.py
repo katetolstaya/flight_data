@@ -34,7 +34,7 @@ def main():
 
     print('Loading cost...')
     folder = "model/"
-    fname = "grid19"
+    fname = "grid21"
     xyzbea_min, xyzbea_max = load_lims(folder, fname)
     grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)
     obj = DubinsObjective(config, grid)
@@ -71,6 +71,8 @@ def main():
 
     lists = get_multi_airplane_segments(flight_summaries)
 
+    plot_expert = False
+
     lists.pop(0)
     lists.pop(0)
     lists.pop(0)
@@ -94,31 +96,35 @@ def main():
 
             print('Planning #' + str(len(learner_trajs) + 1))
 
-            # expert_path_ind = problem.path_to_ind(expert_path)
-            # planner_path_grid = np.zeros((expert_path_ind.shape[0], 5))
-            # for t in range(expert_path_ind.shape[0]):
-            #     ind = np.append(np.asarray(grid.ind_to_index(expert_path_ind[t, :])), expert_path_ind[t, 4])
-            #     planner_path_grid[t, :] = ind
-            # planner_path_grid = planner_path_grid + offset
-            # learner_trajs.append(planner_path_grid)
+            if plot_expert:
 
-            node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
-
-            if node is not None:
-                planner_path = problem.reconstruct_path(node)
-                planner_path_ind = problem.reconstruct_path_ind(node)
-                obj.add_obstacle(planner_path_ind)
-
-                planner_path_grid = np.zeros((planner_path_ind.shape[0], 5))
-                for t in range(planner_path_ind.shape[0]):
-                    ind = np.append(np.asarray(grid.ind_to_index(planner_path_ind[t, :])), planner_path[t, 4])
+                expert_path_ind = problem.path_to_ind(expert_path)
+                planner_path_grid = np.zeros((expert_path_ind.shape[0], 5))
+                for t in range(expert_path_ind.shape[0]):
+                    ind = np.append(np.asarray(grid.ind_to_index(expert_path_ind[t, :])), expert_path_ind[t, 4])
                     planner_path_grid[t, :] = ind
                 planner_path_grid = planner_path_grid + offset
                 learner_trajs.append(planner_path_grid)
 
             else:
-                print('Timeout')
-                break
+
+                node = planner(problem, expert_path[0, :], expert_path[-1, :], obj).plan(to)
+
+                if node is not None:
+                    planner_path = problem.reconstruct_path(node)
+                    planner_path_ind = problem.reconstruct_path_ind(node)
+                    obj.add_obstacle(planner_path_ind)
+
+                    planner_path_grid = np.zeros((planner_path_ind.shape[0], 5))
+                    for t in range(planner_path_ind.shape[0]):
+                        ind = np.append(np.asarray(grid.ind_to_index(planner_path_ind[t, :])), planner_path[t, 4])
+                        planner_path_grid[t, :] = ind
+                    planner_path_grid = planner_path_grid + offset
+                    learner_trajs.append(planner_path_grid)
+
+                else:
+                    print('Timeout')
+                    break
 
         n_learners = len(learner_trajs)
         if n_learners > 1:

@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 def add_path_to_plot(path, fig, ax):
-    if fig == None:
+    if fig is None:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
@@ -20,6 +20,7 @@ def add_path_to_plot(path, fig, ax):
     plt.draw()
     plt.pause(0.001)
     return fig, ax
+
 
 def plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline):
     fig = plt.figure()
@@ -48,8 +49,8 @@ def plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline
 
     plt.show()
 
-def plot_obj(grid):
 
+def plot_obj(grid):
     # pick best orientation in each location (x,y,z)
     # plot only those location that are > 0 (good)
     # convert orientation to quiver direction, u, v, w
@@ -63,9 +64,7 @@ def plot_obj(grid):
     x, y, z = good.nonzero()
 
     orientation = orientation[x, y, z]
-    # print(orientation)
 
-    # print(orientation)
     half_margin = 2
 
     x = (x - half_margin) * grid.resolution[0] + grid.min_val[0]

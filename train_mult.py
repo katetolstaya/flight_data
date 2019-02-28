@@ -30,7 +30,7 @@ def main():
         random.seed(seed)
 
     print('Processing trajectories...')
-    fnames = ['flights20160112']  # , 'flights20160112', 'flights20160113']
+    fnames = ['flights20160111']  # , 'flights20160112', 'flights20160113']
     flight_summaries = load_flight_data(config, fnames)
     lists = get_multi_airplane_segments(flight_summaries)
     random.shuffle(lists)
@@ -88,8 +88,7 @@ def main():
                         timeout = True
 
                 # gradient step
-                obj.update_obstacle_lims(expert_path_ind, planner_path_ind)
-                obj_expert.obstacle_lims = obj.obstacle_lims
+                DubinsObjective.update_obstacle_lims(obj_expert, expert_path_ind, obj, planner_path_ind)
 
                 log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff) + '\t' + str(
                     obj.obstacle_lims))
@@ -101,6 +100,7 @@ def main():
                     obj.add_obstacle(planner_path_ind)
 
                 ind = ind + 1
+
 
 
 if __name__ == "__main__":

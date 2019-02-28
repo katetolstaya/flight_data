@@ -8,7 +8,7 @@ rc('text', usetex=True)
 font = {'family': 'Times New Roman', 'weight': 'bold', 'size': 14}
 rc('font', **font)
 
-path = "grid3000_log.txt"
+path = "log1000.txt"
 
 d = np.loadtxt(path, delimiter="\t", skiprows=1)
 
@@ -38,7 +38,7 @@ plt.show()
 ### % Timeout plot
 planner_cost_nonzero = planner_cost > 0
 step_ind = 50
-min_ind = 3000
+min_ind = 1000
 num_inds = int(np.shape(planner_cost)[0] / step_ind)
 freq_timeout = np.zeros((num_inds,))
 
@@ -47,7 +47,7 @@ for i in range(num_inds):
 
 freq_timeout[int(min_ind / step_ind):] = freq_timeout[int(min_ind / step_ind):] / step_ind
 
-N = 5
+N = 1
 freq_timeout = np.convolve(freq_timeout, np.ones((N,)) / N, mode='valid')
 num_inds = np.shape(freq_timeout)[0]
 inds = np.linspace(0, num_inds * step_ind, num_inds)

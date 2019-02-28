@@ -76,11 +76,13 @@ def main():
 
     lists = get_multi_airplane_segments(flight_summaries)
 
-    plot_expert = True
+    plot_expert = False
 
     # found an interesting case - #13 out of the list
     for _ in range(12):
         lists.pop(0)
+
+    # num 1 and num 4 here are great and 7?
 
     for l in lists:
 
@@ -104,7 +106,7 @@ def main():
                 obj.add_obstacle(expert_path_ind)
                 planner_path_grid = np.zeros((expert_path_ind.shape[0], 5))
                 for t in range(expert_path_ind.shape[0]):
-                    ind = np.append(np.asarray(grid.ind_to_index(expert_path_ind[t, :])), expert_path_ind[t, 4])
+                    ind = np.append(np.asarray(grid.ind_to_index(expert_path_ind[t, :])), expert_path[t, 4])
                     planner_path_grid[t, :] = ind
                 planner_path_grid = planner_path_grid + offset
                 learner_trajs.append(planner_path_grid)
@@ -188,7 +190,7 @@ def main():
                         markers[i].set_marker("None")
                         circles[i].set_radius(0.0)
 
-                time_text.set_text("{0:d} s".format(int((t-start_time)/10.0)))
+                time_text.set_text("{0:d} s".format(int(t-start_time)))
 
                 fig.canvas.draw()
                 fig.canvas.flush_events()

@@ -327,3 +327,19 @@ class DubinsProblem:
         diff = np.sum(np.linalg.norm(path1[i:(i + minlen), 0:3] - path2[j:(j + minlen), 0:3], axis=1))
         # return average norm diff per time
         return diff / minlen
+
+    @staticmethod
+    def compute_avg_min_diff(path1, path2):
+
+        # find time synced positions
+        len1 = path1.shape[0]
+        len2 = path2.shape[0]
+
+        avg_min_diff = 0
+        for i in range(len1):
+            min_dist = np.inf
+            for j in range(len2):
+                min_dist = min(min_dist, np.linalg.norm(path1[i, 0:3] - path2[j, 0:3]))
+            avg_min_diff = avg_min_diff + min_dist
+
+        return avg_min_diff / len1

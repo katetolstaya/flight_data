@@ -17,47 +17,6 @@ planner_cost = d[:, 1]
 expert_cost = d[:, 2]
 diff = d[:, 3]
 
-diff = 1.0 / diff
-
-step_ind = 50
-min_ind = 1000
-num_inds = int(np.shape(planner_cost)[0] / step_ind)
-
-avg_diff = np.zeros((num_inds,))
-for i in range(num_inds):
-    avg_diff[i] = float(np.mean(diff[i * step_ind:((i + 1) * step_ind)]))
-
-num_inds = np.shape(avg_diff)[0]
-inds = np.linspace(0, num_inds * step_ind, num_inds)
-fig, ax = plt.subplots()
-ax.plot(inds, avg_diff)
-plt.xlabel('Training Steps')
-plt.ylabel("Reciprocal of Differences $\\sum_t \\frac{1}{|| \\bar{\\mathbf{s}}(t) - \\bar{\\mathbf{s}}^e(t)||}$")
-# plt.title("IRL Objective")
-a = gca()
-# a.set_xticklabels(a.get_xticks(), font)
-# a.set_yticklabels(a.get_yticks(), font)
-plt.tight_layout()
-plt.show()
-
-# diff[diff == np.inf] = np.nan
-# avg_diff = np.zeros((num_inds,))
-# for i in range(num_inds):
-#     avg_diff[i] = np.nanmean(diff[i * step_ind:((i + 1) * step_ind)])
-#
-# num_inds = np.shape(avg_diff)[0]
-# inds = np.linspace(0, num_inds * step_ind, num_inds)
-# fig, ax = plt.subplots()
-# ax.plot(inds, avg_diff)
-# plt.xlabel('Training Steps')
-# plt.ylabel("Distance Between Expert and Learner")
-# # plt.title("IRL Objective")
-# a = gca()
-# a.set_xticklabels(a.get_xticks(), font)
-# a.set_yticklabels(a.get_yticks(), font)
-# plt.tight_layout()
-# plt.show()
-
 step_ind = 50
 min_ind = 1000
 num_inds = int(np.shape(planner_cost)[0] / step_ind)
@@ -86,6 +45,7 @@ a = gca()
 a.set_xticklabels(a.get_xticks(), font)
 a.set_yticklabels(a.get_yticks(), font)
 plt.tight_layout()
+plt.savefig('margin.png')
 plt.show()
 
 ################################################################################################
@@ -106,4 +66,5 @@ plt.xlabel('Training Steps')
 plt.ylabel("Fraction of Time-Outs")
 
 plt.tight_layout()
+plt.savefig('timeouts.png')
 plt.show()

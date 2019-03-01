@@ -19,14 +19,14 @@ diff = d[:, 3]
 
 obj = planner_cost - expert_cost
 
-N = 40
+N = 50
 
 ### Objective Plot
 filt_obj = np.convolve(obj, np.ones((N,))/N, mode='same')
 fig, ax = plt.subplots()
 ax.plot(inds, filt_obj)
 plt.xlabel('Training Steps')
-plt.ylabel("Objective $\hat{\mathcal{L}}(J_a)$") # plt.ylabel("Objective $\mathcal{L}(J_a)$")
+plt.ylabel("Margin $\hat{\mathcal{L}}(J_a)$") # plt.ylabel("Objective $\mathcal{L}(J_a)$")
 #plt.title("IRL Objective")
 a = gca()
 a.set_xticklabels(a.get_xticks(), font)

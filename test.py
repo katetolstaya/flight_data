@@ -67,8 +67,8 @@ def main():
 
             #plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
             ind = ind + 1
-        else:
-            print('Timeout')
+        # else:
+        #     print('Timeout')
 
 
 if __name__ == "__main__":

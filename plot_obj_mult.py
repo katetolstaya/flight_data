@@ -64,7 +64,7 @@ def main():
 
     cost_min = cost_min.T
 
-    colors = ['gold', 'dodgerblue', 'orchid', 'orangered']
+    colors = ['orangered', 'dodgerblue', 'gold',   'orchid', 'lightgreen', 'cyan']
     # colors = ['#78C74D', "#BDAE33", "#BC5A33", "#A0373F"]
     # colors = ['forestgreen', 'firebrick', 'purple', 'darkblue', 'darkorange']
     plt.ion()
@@ -84,6 +84,8 @@ def main():
 
     # num 1 and num 4 here are great and 7?
 
+    lists = [lists[0], lists[4], lists[15], lists[20], lists[21]] # lists[0], lists[4], lists[15], lists[2] is good for sure - 4 agents
+
     for l in lists:
 
         learner_trajs = []
@@ -94,7 +96,7 @@ def main():
 
         for expert_path in paths:
 
-            if len(learner_trajs) >= 4:
+            if len(learner_trajs) >= 5:
                 break
 
             print('Planning #' + str(len(learner_trajs) + 1))
@@ -161,13 +163,13 @@ def main():
             for i in range(len(learner_trajs)):
                 marker, = ax.plot([-100, -99], [-100, -99], linewidth=0, marker='o', markersize=10, color=colors[i])
                 markers.append(marker)
-                circle = plt.Circle((-100, -100), radius, edgecolor=colors[i], fill=False)
+                circle = plt.Circle((-100, -100), radius, edgecolor=colors[i], fill=False, linewidth=2)
                 circles.append(circle)
                 ax.add_patch(circle)
 
-            lines.reverse()
-            markers.reverse()
-            circles.reverse()
+            # lines.reverse()
+            # markers.reverse()
+            # circles.reverse()
 
             inds = np.zeros((n_learners,), dtype=np.int)
 
@@ -194,7 +196,7 @@ def main():
 
                 fig.canvas.draw()
                 fig.canvas.flush_events()
-                time.sleep(1.0)
+                time.sleep(3.0)
 
 
 if __name__ == "__main__":

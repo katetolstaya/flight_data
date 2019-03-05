@@ -1,13 +1,11 @@
 import configparser
 import random
 import sys
-from plot_utils import plot_planner_expert
-from planning.grid import Grid
 
 from planning.path_length_objective import PathLengthObjective
 
 from planning.dubins_problem import DubinsProblem
-from data_utils import load_flight_data, make_planner, load_lims, log
+from data_utils.data_utils import load_flight_data, make_planner, load_lims, log
 from matplotlib import rc
 
 rc('text', usetex=True)

@@ -30,10 +30,6 @@ class ARAStar:
 
         self.goal_node = None  # result
 
-        self.animate_plot = False
-
-        if self.animate_plot:
-            self.prob.initialize_plot(self.start, self.goal)
 
     def plan(self, to=30.0):
         timeout = time.time() + to  # seconds till timeout
@@ -76,9 +72,6 @@ class ARAStar:
 
             s = self.open_set.get()
             self.closed_set.add(s)
-
-            if self.animate_plot:
-                self.prob.update_plot(s)
 
             for (n, c) in self.prob.get_neighbors(s):  # check each neighbor
                 if self.obj is not None:

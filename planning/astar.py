@@ -3,6 +3,7 @@ import time
 
 inf = float("inf")
 
+
 class AStar:
 
     def __init__(self, problem, start, goal, obj):
@@ -10,15 +11,9 @@ class AStar:
         self.start = problem.new_node(start)
         self.goal = problem.new_node(goal)
         self.obj = obj
-        self.cost = {}  # map for cost estimates
-        self.cost[self.start] = 0
+        self.cost = {self.start: 0}  # cost of initial node is 0
         self.open_set = PriorityQueue()  # set of open nodes
         self.open_set.put(self.start, 0.0)
-
-        self.animate_plot = True
-
-        if self.animate_plot:
-            self.prob.initialize_plot(self.start, self.goal)
 
     def plan(self, to=30):
 
@@ -29,9 +24,6 @@ class AStar:
 
             # pop off the next node
             s = self.open_set.get()
-
-            if self.animate_plot:
-                self.prob.update_plot(s)
 
             if self.prob.at_goal_position(s, self.goal):  # return if goal
                 return s

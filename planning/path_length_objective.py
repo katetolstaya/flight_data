@@ -1,5 +1,4 @@
 import numpy as np
-from planning.dubins_node import DubinsNode
 
 inf = float("inf")
 
@@ -23,11 +22,7 @@ class PathLengthObjective:
         :return:
         :rtype:
         """
-        if isinstance(ind, DubinsNode):
-            ind = ind.loc
-
-        cost = 1.0
-        return cost
+        return 1.0
 
     def integrate_path_cost(self, path, path_ind=None):  # TODO
         """

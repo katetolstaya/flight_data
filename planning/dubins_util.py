@@ -150,8 +150,7 @@ def dubins_path(sx, sy, syaw, ex, ey, eyaw, c):
     alpha = mod2pi(- theta)
     beta = mod2pi(deyaw - theta)
 
-    planners = [LSL, RSR, LSR, RSL, RLR, LRL] # RLR and LRL could cause instability
-    #planners = [LSL, RSR, LSR, RSL]
+    planners = [LSL, RSR, LSR, RSL, RLR, LRL]
     bcost, bt, bp, bq, bmode = inf, inf, inf, inf, None
 
     for planner in planners:
@@ -164,32 +163,3 @@ def dubins_path(sx, sy, syaw, ex, ey, eyaw, c):
             bcost, bt, bp, bq, bmode = cost, t, p, q, mode
 
     return bcost, bt, bp, bq, bmode
-
-
-# def main():
-#     sx = 0
-#     sy = 0
-#     syaw = pi
-#
-#
-#     ex = 10
-#     ey = 0
-#     eyaw = 0
-#
-#     v_x = 2.0
-#     v_theta = 1.0
-#
-#     c = v_theta / v_x
-#
-#     bcost, bt, bp, bq, bmode = dubins_path(sx, sy, syaw, ex, ey, eyaw, c)
-#
-#     print(bt / v_theta)
-#     print(bp / c / v_x)
-#     print(bq / v_theta)
-#     print(bmode)
-#     print(bcost)
-#
-#
-#
-# if __name__ == "__main__":
-#     main()

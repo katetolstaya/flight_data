@@ -1,5 +1,6 @@
 import heapq
 
+
 # from https://www.redblobgames.com/pathfinding/a-star/implementation.html
 
 class PriorityQueue:
@@ -12,7 +13,7 @@ class PriorityQueue:
     def put(self, item, priority):
         heapq.heappush(self.elements, (priority, item))
 
-    def get(self, i = None):
+    def get(self, i=None):
         return heapq.heappop(self.elements)[1]
 
     def peek(self):

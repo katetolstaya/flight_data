@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.patches as patches
 import time
 import configparser
 import random
@@ -9,7 +8,8 @@ import sys
 from planning.grid import Grid
 from planning.dubins_problem import DubinsProblem
 from planning.dubins_objective import DubinsObjective
-from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data
+from data_utils.data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, \
+    time_sync_flight_data
 from matplotlib import rc
 
 rc('text', usetex=True)
@@ -18,6 +18,8 @@ rc('font', **font)
 
 
 def main():
+    plot_expert = False
+
     if len(sys.argv) > 1:
         config_file = sys.argv[1]
     else:
@@ -29,13 +31,12 @@ def main():
     to = float(config['timeout'])
     seed = int(config['random_seed'])
     planner = make_planner(config['planner_type'])
-    n_samples = int(config['num_samples'])
 
     if seed >= 0:
         random.seed(seed)
 
     # get plane data
-    fnames = ['flights20160112' ] # 'flights20160112', 'flights20160113']
+    fnames = ['flights20160112']  # 'flights20160112', 'flights20160113']
     flight_summaries = load_flight_data(config, fnames)
 
     print('Loading cost...')
@@ -59,14 +60,12 @@ def main():
         x = k[0] + offset_x
         y = k[1] + offset_y
 
-        if x > 0 and y > 0 and x < max_x and y < max_y:
+        if 0 < x < max_x and 0 < y < max_y:
             cost_min[x, y] = min(cost_min[x, y], grid.grid[k])
 
     cost_min = cost_min.T
 
-    colors = ['orangered', 'dodgerblue', 'gold',   'orchid', 'lightgreen', 'cyan']
-    # colors = ['#78C74D', "#BDAE33", "#BC5A33", "#A0373F"]
-    # colors = ['forestgreen', 'firebrick', 'purple', 'darkblue', 'darkorange']
+    colors = ['orangered', 'dodgerblue', 'gold', 'orchid', 'cyan']
     plt.ion()
 
     obj = DubinsObjective(config, grid)
@@ -76,21 +75,11 @@ def main():
 
     lists = get_multi_airplane_segments(flight_summaries)
 
-    plot_expert = False
-
-    # found an interesting case - #13 out of the list
-    for _ in range(12):
-        lists.pop(0)
-
-    # num 1 and num 4 here are great and 7?
-
-    lists = [lists[0], lists[4], lists[15], lists[20], lists[21]] # lists[0], lists[4], lists[15], lists[2] is good for sure - 4 agents
-
-    for l in lists:
-
-        learner_trajs = []
+    # for l in lists:
+    for l in [lists[12], lists[16], lists[27], lists[32], lists[33]]:
 
         print('Planning for ' + str(len(l)) + ' airplanes...')
+        learner_trajs = []
         paths = time_sync_flight_data(l, problem)
         obj.clear_obstacles()
 
@@ -129,11 +118,11 @@ def main():
                     planner_path_grid = planner_path_grid + offset
                     learner_trajs.append(planner_path_grid)
 
-
                 else:
                     print('Timeout')
                     break
 
+        # plot results
         n_learners = len(learner_trajs)
         if n_learners > 1:
 
@@ -167,15 +156,9 @@ def main():
                 circles.append(circle)
                 ax.add_patch(circle)
 
-            # lines.reverse()
-            # markers.reverse()
-            # circles.reverse()
-
             inds = np.zeros((n_learners,), dtype=np.int)
 
             for t in np.arange(start_time, end_time, dt):
-                print(t)
-                # time_text.set_text(" {0:.2f} s".format(t-start_time))
                 for i in reversed(range(n_learners)):
 
                     # show next time step
@@ -192,7 +175,7 @@ def main():
                         markers[i].set_marker("None")
                         circles[i].set_radius(0.0)
 
-                time_text.set_text("{0:d} s".format(int(t-start_time)))
+                time_text.set_text("{0:d} s".format(int(t - start_time)))
 
                 fig.canvas.draw()
                 fig.canvas.flush_events()

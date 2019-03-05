@@ -31,7 +31,7 @@ The expert trajectory is denoted in green, while the learner's sequence of motio
 ## Change parameters
 To modify experiment parameters, change `params.cfg` and retrain the model.
 
-## To do for paper:
+## To do for video:
 1) Demo with slower or faster airplanes
 2) Record videos for video
 
@@ -39,6 +39,7 @@ To modify experiment parameters, change `params.cfg` and retrain the model.
 1) Move text parsing code into its own folder
 2) Move plotting utils
 3) Organize compressed dataset
+4) Why does the segfault happen?
 
 ## Future directions
 1) Demo in a simulator

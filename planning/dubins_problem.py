@@ -5,8 +5,6 @@ from planning.dubins_util import dubins_path, neg_pi_to_pi
 from planning.dubins_node import DubinsNode
 from scipy.interpolate import UnivariateSpline
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from spline.Greville3D import Bspline4
 
 inf = float("inf")
 
@@ -26,12 +24,7 @@ class DubinsProblem:
         self.v_z = float(config['velocity_z'])
         self.curvature = self.v_theta / self.v_xy
 
-        # self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
-        # self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z
-
-        # self.ps_theta = np.array([0.0, -1.0, 1.0]) * self.v_theta
         self.ps_theta = np.array([0.0, -1.0, 1.0, -0.1, 0.1]) * self.v_theta
-        # self.ps_z = np.array([0.0, -1.0, 1.0, -0.1, 0.1]) * self.v_z
         self.ps_z = np.array([0.0, -1.0, 1.0]) * self.v_z
 
         self.max_ps_z = max(self.ps_z)
@@ -173,7 +166,6 @@ class DubinsProblem:
 
         return dist  # * 0.5 + delta_time_sg * self.v_xy * 0.5
 
-    # TODO constrain airplane arrival time, will need to tune velocities
     def at_goal_position(self, start, goal):
         return np.all(np.less(np.abs(start.loc[0:4] - goal.loc[0:4]), self.goal_res[0:4]))
         # return np.all(np.less(np.abs(start.loc - goal.loc), self.goal_res))
@@ -208,33 +200,6 @@ class DubinsProblem:
             n = n.parent
         return np.flip(path, 0)
 
-    def initialize_plot(self, start, goal):
-        plt.ion()
-        # self.fig = plt.figure()
-        # self.ax = self.fig.gca(projection='3d')
-
-        self.fig, self.ax = plt.subplots()
-
-        start_loc = self.to_loc(start.loc)
-        goal_loc = self.to_loc(goal.loc)
-
-        self.ax.plot([goal_loc[0]], [goal_loc[1]], 'rx')
-
-        self.x_plot = [start_loc[0]]
-        self.y_plot = [start_loc[1]]
-        self.line, = self.ax.plot(self.x_plot, self.y_plot, 'go')
-
-    def update_plot(self, s):
-        loc = self.to_loc(s.loc)
-        self.x_plot.append(loc[0])
-        self.y_plot.append(loc[1])
-
-        self.line.set_data(self.x_plot, self.y_plot)
-        self.ax.relim()
-        self.ax.autoscale_view()
-        self.fig.canvas.draw()
-        self.fig.canvas.flush_events()
-
     @staticmethod
     def resample_path(path, n_ts=400):
 
@@ -255,30 +220,6 @@ class DubinsProblem:
 
         smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
         return smoothed_path
-
-        # n_path_pts = path.shape[0]
-        #
-        # # Build knot vector tk
-        # maxtk = n_path_pts - 4
-        # s = (1, 4)
-        # tk = np.zeros(s)
-        # tkmiddle = np.arange(maxtk + 1)
-        # tkend = maxtk * np.ones(s)
-        # tk = np.append(tk, tkmiddle)
-        # tk = np.append(tk, tkend)
-        #
-        # ts = np.linspace(start=path[0, 4], stop=path[-1, 4], num=n_ts)
-        # smoothed_path, B4, tau = Bspline4(path[:, 0:3], n_ts, tk, maxtk)  # interpolate in XYZ
-        #
-        # xs = smoothed_path[:, 0].reshape(-1, 1)
-        # ys = smoothed_path[:, 1].reshape(-1, 1)
-        # zs = smoothed_path[:, 2].reshape(-1, 1)
-        # bs = np.arctan2(ys[1:] - ys[:-1], xs[1:] - xs[:-1])
-        # bs = np.append(bs, [bs[-1]], axis=0)
-        # ts = ts.reshape(-1, 1)
-        #
-        # smoothed_path = np.stack((xs, ys, zs, bs, ts), axis=1).reshape(-1, 5)
-        # return smoothed_path
 
     @staticmethod
     def resample_path_dt(path, s, dt):

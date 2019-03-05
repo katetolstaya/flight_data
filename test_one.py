@@ -1,17 +1,18 @@
 import configparser
 import random
 import sys
-from plot_utils import plot_planner_expert
+from matplotlib import rc
+
 from planning.grid import Grid
 from planning.dubins_objective import DubinsObjective
-
 from planning.dubins_problem import DubinsProblem
-from data_utils import load_flight_data, make_planner, load_lims, log
-from matplotlib import rc
+from data_utils.data_utils import load_flight_data, make_planner, load_lims, log
+from data_utils.plot_utils import plot_planner_expert
 
 rc('text', usetex=True)
 font = {'family': 'Times New Roman', 'weight': 'bold', 'size': 14}
 rc('font', **font)
+
 
 def main():
     if len(sys.argv) > 1:
@@ -35,7 +36,6 @@ def main():
     random.shuffle(flight_summaries)
 
     # set up cost grid
-
     print('Loading cost...')
     folder = "model/"
     fname = "grid22"
@@ -47,25 +47,26 @@ def main():
     print('Planning...')
     ind = 0
     for flight in flight_summaries:
+
         if flight.get_num_waypoints() < 4:
             continue
+
         start, goal = flight.get_start_goal()
         node = planner(problem, start, goal, obj).plan(to)
+
         if node is not None:
             planner_path = problem.reconstruct_path(node)
-
             expert_path = flight.to_path()
-            #planner_spline = problem.resample_path(planner_path, n_samples)
+            planner_spline = problem.resample_path(planner_path, n_samples)
             expert_spline = problem.resample_path(expert_path, n_samples)
             expert_cost = obj.integrate_path_cost(expert_path)
             planner_cost = obj.integrate_path_cost(planner_path)
-            #print(str(planner_cost - expert_cost))
 
             path_min_diff = problem.compute_avg_min_diff(planner_path, expert_spline)
 
-            log(str(ind)+ '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_min_diff))
+            log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_min_diff))
 
-            #plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
+            plot_planner_expert(planner_path, expert_path, planner_spline, expert_spline)
             ind = ind + 1
         # else:
         #     print('Timeout')

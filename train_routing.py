@@ -1,13 +1,12 @@
 import random
-from process import get_min_max_all
+from data_utils.process import get_min_max_all
 from planning.grid import Grid
 from planning.dubins_objective import DubinsObjective
 import configparser
 from planning.dubins_problem import DubinsProblem
 import numpy as np
 import sys
-
-from data_utils import log_fname, load_flight_data, make_planner, save_lims, log
+from data_utils.data_utils import load_flight_data, make_planner, save_lims, log
 
 
 def main():
@@ -25,10 +24,9 @@ def main():
 
     to = float(config['timeout'])
     n_iters = int(config['num_iterations'])
-    n_samples = int(config['num_samples'])
     seed = int(config['random_seed'])
 
-    log_file_name = 'logs/' + config['grid_filename'] + "_log.txt"
+    #log_file_name = 'logs/' + config['grid_filename'] + "_log.txt"
     folder = 'model/'
     fname = config['grid_filename']
 
@@ -39,12 +37,9 @@ def main():
     flight_summaries = load_flight_data(config)
     random.shuffle(flight_summaries)
 
-    # # set up cost grid
+    # set up cost grid
     xyzbea_min, xyzbea_max = get_min_max_all(flight_summaries)
     save_lims(xyzbea_min, xyzbea_max, folder, fname)
-
-    # print('Initializing...')
-    # set up cost grid
     grid = Grid(config, xyzbea_min, xyzbea_max)
     obj = DubinsObjective(config, grid)
     problem = DubinsProblem(config, xyzbea_min, xyzbea_max)
@@ -86,7 +81,6 @@ def main():
                     path_diff = problem.compute_avg_path_diff(expert_dense_path, planner_dense_path)
 
                     log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff))
-                    # print(planner_cost - expert_cost)
                     grid.gradient_step(planner_dense_path, 10.0)
                     grid.gradient_step(expert_dense_path, -10.0)
                 else:
@@ -99,9 +93,8 @@ def main():
                 grid.gradient_step(expert_dense_path, -10.0)
 
             ind = ind + 1
-            # if ind % save_ind == 0:
-            #     #print('Saving grid...')
-            #     obj.grid.save_grid()
+            if ind % save_ind == 0:
+                obj.grid.save_grid()
 
     obj.grid.save_grid()
 

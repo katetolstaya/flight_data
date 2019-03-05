@@ -4,7 +4,7 @@ import configparser
 from planning.dubins_problem import DubinsProblem
 from planning.dubins_objective import DubinsObjective
 from planning.grid import Grid
-from data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data, \
+from data_utils.data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data, \
     log
 
 inf = float("inf")
@@ -92,9 +92,7 @@ def main():
                 DubinsObjective.update_obstacle_lims(obj_expert, expert_path_ind, obj, planner_path_ind)
 
                 log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff) + '\t' + str(
-                    obj.obstacle_lims))
-                # log(str(ind) + '\t' + str(planner_cost) + '\t' + str(expert_cost) + '\t' + str(path_diff) + '\t' + str(
-                #     obj.obstacle_lims), log_file)
+                    obj.obstacle_lims))  # log_file)
 
                 obj_expert.add_obstacle(expert_path_ind)
                 if not timeout:

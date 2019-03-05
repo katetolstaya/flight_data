@@ -25,7 +25,6 @@ class Grid:
         self.max_val = max_val[0:4].reshape((self.n_dim, 1))
         self.min_val = min_val[0:4].reshape((self.n_dim, 1))
 
-        # TODO get rid of margin and half-margin
         self.margin = 4
         self.half_margin = int(self.margin / 2)
 

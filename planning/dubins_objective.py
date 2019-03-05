@@ -7,13 +7,6 @@ inf = float("inf")
 class DubinsObjective:
 
     def __init__(self, config, grid=None):
-        """
-
-        :param config:
-        :type config:
-        :param grid:
-        :type grid:
-        """
 
         self.obstacle_cost = float(config['obstacle_cost'])
         self.obstacle_lims = np.array([float(config['obstacle_init_xy']), float(config['obstacle_init_z'])])
@@ -23,13 +16,7 @@ class DubinsObjective:
         self.obstacle_paths = {}
 
     def get_cost(self, ind):
-        """
 
-        :param ind:
-        :type ind:
-        :return:
-        :rtype:
-        """
         if isinstance(ind, DubinsNode):
             ind = ind.loc
 
@@ -41,15 +28,7 @@ class DubinsObjective:
         return cost
 
     def integrate_path_cost(self, path, path_ind=None):  # TODO
-        """
 
-        :param path:
-        :type path:
-        :param path_ind:
-        :type path_ind:
-        :return:
-        :rtype:
-        """
         path_cost = 0
         for i in range(1, np.size(path, 0)):
 
@@ -71,11 +50,7 @@ class DubinsObjective:
         return path_cost
 
     def add_obstacle(self, obstacle_path):
-        """
 
-        :param obstacle_path:
-        :type obstacle_path:
-        """
         for i in range(obstacle_path.shape[0]):
             time = int(obstacle_path[i, 4])
             ind = obstacle_path[i, 0:3]
@@ -84,30 +59,16 @@ class DubinsObjective:
             self.obstacle_paths[time] = np.vstack((self.obstacle_paths[time], ind))
 
     def clear_obstacles(self):
-        """
 
-        """
         self.obstacle_paths = {}
 
     def get_obstacle_threshold(self, diff):
-        """
 
-        :param diff:
-        :type diff:
-        :return:
-        :rtype:
-        """
         xy_dist = np.sqrt(diff[0] * diff[0] + diff[1] * diff[1])
         return self.obstacle_cost * np.product(np.maximum(self.obstacle_lims - np.array([xy_dist, diff[2]]), 0))
 
     def get_obstacles_cost(self, ind):
-        """
 
-        :param ind:
-        :type ind:
-        :return:
-        :rtype:
-        """
         obstacles = self.obstacle_paths.get(int(ind[4]))
         if obstacles is not None:
             cost_sum = 0
@@ -119,13 +80,7 @@ class DubinsObjective:
             return 0
 
     def compute_gradient(self, path):
-        """
 
-        :param path:
-        :type path:
-        :return:
-        :rtype:
-        """
         grad_sum = np.zeros((2,))
         for j in range(0, path.shape[0]):
             ind = path[j, :]
@@ -145,17 +100,7 @@ class DubinsObjective:
 
     @staticmethod
     def update_obstacle_lims(obj_expert, path_expert, obj, path_planner):
-        """
 
-        :param obj_expert:
-        :type obj_expert:
-        :param path_expert:
-        :type path_expert:
-        :param obj:
-        :type obj:
-        :param path_planner:
-        :type path_planner:
-        """
         grad_expert = obj_expert.compute_gradient(path_expert)
         if path_planner is not None:
             grad_planner = obj.compute_gradient(path_planner)

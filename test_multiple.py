@@ -107,7 +107,7 @@ def main():
                 if node is not None:
                     planner_path = problem.reconstruct_path(node)
                     planner_path_ind = problem.reconstruct_path_ind(node)
-                    print(obj.integrate_path_cost(planner_path, planner_path_ind))
+                    print("Cost margin: " + str(obj.integrate_path_cost(planner_path, planner_path_ind)))
                     obj.add_obstacle(planner_path_ind)
 
                     planner_path_grid = np.zeros((planner_path_ind.shape[0], 5))

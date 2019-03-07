@@ -1,7 +1,7 @@
 # Auto-Air Traffic Control
 
-## Report
-View the current version of the write-up [here](https://www.overleaf.com/read/fkygphjtxkwf).
+## Conference Paper
+View the IROS 2019 submission [here](https://github.com/katetolstaya/flight_data/blob/master/iros2019.pdf).
 
 ## Dependencies
 

@@ -4,8 +4,8 @@ import configparser
 from planning.dubins_problem import DubinsProblem
 from planning.dubins_objective import DubinsObjective
 from planning.grid import Grid
-from data_utils.data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, time_sync_flight_data, \
-    log
+from utils.data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, \
+    time_sync_flight_data, log
 
 inf = float("inf")
 
@@ -24,14 +24,14 @@ def main():
     to = float(config['timeout'])
     n_iters = int(config['num_iterations'])
     seed = int(config['random_seed'])
-    #log_file = open('logs/' + config['grid_filename'] + "_mult_log.txt", "wb")
+    # log_file = open('logs/' + config['grid_filename'] + "_mult_log.txt", "wb")
 
     if seed >= 0:
         random.seed(seed)
 
     print('Processing trajectories...')
     # TODO why does using more than one file mess things up? since when is the time local?
-    fnames = ['flights20160111' ] #, 'flights20160112', 'flights20160113']
+    fnames = ['flights20160111']  # , 'flights20160112', 'flights20160113']
     flight_summaries = load_flight_data(config, fnames)
     lists = get_multi_airplane_segments(flight_summaries)
     random.shuffle(lists)

@@ -1,7 +1,13 @@
 # Auto-Air Traffic Control
 
+<<<<<<< HEAD
 ## Report
 View the IROS 2019 submission [here](https://github.com/katetolstaya/flight_data/blob/master/iros2019.pdf) and the video on [Youtube](https://youtu.be/5HasgHNl-XY).
+=======
+## Conference Paper
+View the IROS 2019 submission [here](https://github.com/katetolstaya/flight_data/blob/master/iros2019.pdf).
+
+>>>>>>> e5326dcb5effb77f1b9bb053a062ae34181fca4c
 ## Dependencies
 
 - Python 2.7
@@ -13,7 +19,11 @@ To train model, run:
 `python2 train_routing.py`
 
 This will generate a file in the model folder with the filename corresponding to `grid_filename` in `params.cfg`.
+<<<<<<< HEAD
 A trained model is provided:  `./models/grid19.pkl`
+=======
+A trained model is provided:  `./model/grid19.pkl`
+>>>>>>> e5326dcb5effb77f1b9bb053a062ae34181fca4c
 
 ## Test routing model
 To test model, run:

@@ -14,6 +14,7 @@ class Grid:
         # set up grid
         self.config = config
         self.folder = 'models/'
+
         self.fname = config['grid_filename']
         self.n_dim = 4
 

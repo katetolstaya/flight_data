@@ -7,12 +7,12 @@ import sys
 from planning.grid import Grid
 from planning.dubins_problem import DubinsProblem
 from planning.dubins_objective import DubinsObjective
-from data_utils.data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, \
+from utils.data_utils import load_flight_data, make_planner, load_lims, get_multi_airplane_segments, \
     time_sync_flight_data
 from matplotlib import rc
 
 rc('text', usetex=True)
-font = {'family': 'Times New Roman', 'weight': 'bold', 'size': 14}
+font = {'family': 'serif', 'weight': 'bold', 'size': 14}
 rc('font', **font)
 
 
@@ -74,7 +74,7 @@ def main():
 
     lists = get_multi_airplane_segments(flight_summaries)
     lists = [lists[12], lists[16], lists[27], lists[32], lists[33]]
-    
+
     for l in lists:
 
         print('Planning for ' + str(len(l)) + ' airplanes...')
@@ -178,7 +178,7 @@ def main():
 
                 fig.canvas.draw()
                 fig.canvas.flush_events()
-                time.sleep(3.0)
+                time.sleep(1.0)
 
 
 if __name__ == "__main__":

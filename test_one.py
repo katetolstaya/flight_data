@@ -6,11 +6,11 @@ from matplotlib import rc
 from planning.grid import Grid
 from planning.dubins_objective import DubinsObjective
 from planning.dubins_problem import DubinsProblem
-from data_utils.data_utils import load_flight_data, make_planner, load_lims, log
-from data_utils.plot_utils import plot_planner_expert
+from utils.data_utils import load_flight_data, make_planner, load_lims, log
+from utils.plot_utils import plot_planner_expert
 
 rc('text', usetex=True)
-font = {'family': 'Times New Roman', 'weight': 'bold', 'size': 14}
+font = {'family': 'serif', 'weight': 'bold', 'size': 14}
 rc('font', **font)
 
 

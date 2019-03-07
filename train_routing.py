@@ -1,12 +1,12 @@
 import random
-from data_utils.process import get_min_max_all
+from utils.process import get_min_max_all
 from planning.grid import Grid
 from planning.dubins_objective import DubinsObjective
 import configparser
 from planning.dubins_problem import DubinsProblem
 import numpy as np
 import sys
-from data_utils.data_utils import load_flight_data, make_planner, save_lims, log
+from utils.data_utils import load_flight_data, make_planner, save_lims, log
 
 
 def main():
@@ -26,7 +26,7 @@ def main():
     n_iters = int(config['num_iterations'])
     seed = int(config['random_seed'])
 
-    #log_file_name = 'logs/' + config['grid_filename'] + "_log.txt"
+    # log_file_name = 'logs/' + config['grid_filename'] + "_log.txt"
     folder = 'model/'
     fname = config['grid_filename']
 

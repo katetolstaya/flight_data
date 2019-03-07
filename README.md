@@ -18,22 +18,21 @@ This will generate a file in the model folder with the filename corresponding to
 
 A trained model is provided:  `./models/grid19.pkl`
 
+## Train spacing model
+To train model, run:
+`python2 train_spacing.py`
 
-## Test routing model
+## Test with one airplane
 To test model, run:
-`python2 test_single.py`
+`python2 test_one.py`
 
 This will load the trained model listed for `grid_filename` in `params.cfg` and display a plot of a generated trajectory. 
 If you close this window, the program will go on to another test case and show another graph. 
 
 The expert trajectory is denoted in green, while the learner's sequence of motion primitives is denoted with red arrows, and a blue spline interpolates these points. 
 
-## Train spacing model
-To train model, run:
-`python2 train_spacing.py`
-
-## Test spacing model
-To train model, run:
+## Test with multiple airplanes
+To test  model, run:
 `python2 test_multiple.py`
 
 

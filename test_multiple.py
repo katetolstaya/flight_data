@@ -108,7 +108,11 @@ def main():
                     planner_path = problem.reconstruct_path(node)
                     planner_path_ind = problem.reconstruct_path_ind(node)
 <<<<<<< HEAD
+<<<<<<< HEAD
                     print("Cost margin: " + str(obj.integrate_path_cost(planner_path, planner_path_ind)))
+=======
+                    print(obj.integrate_path_cost(planner_path, planner_path_ind))
+>>>>>>> e5326dcb5effb77f1b9bb053a062ae34181fca4c
 =======
                     print(obj.integrate_path_cost(planner_path, planner_path_ind))
 >>>>>>> e5326dcb5effb77f1b9bb053a062ae34181fca4c

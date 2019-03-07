@@ -3,6 +3,7 @@
 ## Report
 View the IROS 2019 submission [here](https://github.com/katetolstaya/flight_data/blob/master/iros2019.pdf) and the video on [Youtube](https://youtu.be/5HasgHNl-XY).
 
+
 ## Dependencies
 
 - Python 2.7
@@ -15,6 +16,7 @@ To train model, run:
 
 This will generate a file in the model folder with the filename corresponding to `grid_filename` in `params.cfg`.
 A trained model is provided:  `./models/grid19.pkl`
+
 
 
 ## Test routing model

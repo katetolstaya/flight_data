@@ -39,7 +39,9 @@ def main():
     flight_summaries = load_flight_data(config, fnames)
 
     print('Loading cost...')
+
     folder = "models/"
+
     fname = "grid19"
     xyzbea_min, xyzbea_max = load_lims(folder, fname)
     grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)
@@ -107,8 +109,8 @@ def main():
                 if node is not None:
                     planner_path = problem.reconstruct_path(node)
                     planner_path_ind = problem.reconstruct_path_ind(node)
-
                     print("Cost margin: " + str(obj.integrate_path_cost(planner_path, planner_path_ind)))
+
                     obj.add_obstacle(planner_path_ind)
 
                     planner_path_grid = np.zeros((planner_path_ind.shape[0], 5))

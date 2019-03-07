@@ -14,11 +14,15 @@ class Grid:
         # set up grid
         self.config = config
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.folder = 'models/'
 
 =======
         self.folder = 'model/'
 >>>>>>> e5326dcb5effb77f1b9bb053a062ae34181fca4c
+=======
+        self.folder = 'model/'
+>>>>>>> origin/master
         self.fname = config['grid_filename']
         self.n_dim = 4
 

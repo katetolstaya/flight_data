@@ -37,6 +37,7 @@ def main():
     random.shuffle(lists)
 
     folder = "models/"
+
     fname = "grid19"
     xyzbea_min, xyzbea_max = load_lims(folder, fname)
     grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)

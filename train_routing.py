@@ -27,7 +27,7 @@ def main():
     seed = int(config['random_seed'])
 
     # log_file_name = 'logs/' + config['grid_filename'] + "_log.txt"
-    folder = 'model/'
+    folder = 'models/'
     fname = config['grid_filename']
 
     if seed >= 0:

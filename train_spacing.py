@@ -36,7 +36,7 @@ def main():
     lists = get_multi_airplane_segments(flight_summaries)
     random.shuffle(lists)
 
-    folder = "model/"
+    folder = "models/"
     fname = "grid19"
     xyzbea_min, xyzbea_max = load_lims(folder, fname)
     grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)

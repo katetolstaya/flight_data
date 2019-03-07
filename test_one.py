@@ -37,7 +37,7 @@ def main():
 
     # set up cost grid
     print('Loading cost...')
-    folder = "model/"
+    folder = "models/"
     fname = "grid22"
     xyzbea_min, xyzbea_max = load_lims(folder, fname)
     grid = Grid(config, xyzbea_min, xyzbea_max, fname=fname)

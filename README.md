@@ -1,8 +1,7 @@
 # Auto-Air Traffic Control
 
 ## Conference Paper
-View the IROS 2019 submission [here](https://github.com/katetolstaya/flight_data/blob/master/iros2019.pdf).
-
+View the IROS 2019 submission [here](https://github.com/katetolstaya/flight_data/blob/master/iros2019.pdf) and the video on [Youtube](https://youtu.be/5HasgHNl-XY).
 ## Dependencies
 
 - Python 2.7

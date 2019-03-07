@@ -149,12 +149,16 @@ def main():
             ax.set_xlim([0, max_x])
             ax.set_ylim([0, max_y])
 
-            ax.imshow(-1.0 * cost_min, extent=[0, max_x, 0, max_y], cmap='Greens', interpolation='spline16',
-                      origin='lower', alpha=0.5)
+            if not plot_expert:
+                ax.imshow(-1.0 * cost_min, extent=[0, max_x, 0, max_y], cmap='Greens', interpolation='spline16',
+                          origin='lower', alpha=0.5)
 
             time_text = plt.text(20.0, 20.0, '', fontsize=18)
 
             plt.axis('off')
+
+            mng = plt.get_current_fig_manager()
+            mng.resize(*mng.window.maxsize())
 
             for i in range(len(learner_trajs)):
                 line, = ax.plot([-100, -99], [-100, -99], linewidth=4, color=colors[i])
@@ -182,9 +186,12 @@ def main():
                     while learner_trajs[i].shape[0] > inds[i] and learner_trajs[i][inds[i], 4] < t:
                         lines[i].set_xdata(learner_trajs[i][0:inds[i] + 1, 0])
                         lines[i].set_ydata(learner_trajs[i][0:inds[i] + 1, 1])
+
                         markers[i].set_xdata(learner_trajs[i][inds[i], 0])
                         markers[i].set_ydata(learner_trajs[i][inds[i], 1])
-                        circles[i].center = learner_trajs[i][inds[i], 0], learner_trajs[i][inds[i], 1]
+
+                        if not plot_expert:
+                            circles[i].center = learner_trajs[i][inds[i], 0], learner_trajs[i][inds[i], 1]
                         inds[i] = inds[i] + 1
 
                     # traj done
@@ -196,7 +203,7 @@ def main():
 
                 fig.canvas.draw()
                 fig.canvas.flush_events()
-                time.sleep(3.0)
+                time.sleep(1.0)
 
 
 if __name__ == "__main__":

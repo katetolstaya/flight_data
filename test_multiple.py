@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import time
 import configparser
 import random
@@ -74,9 +73,9 @@ def main():
     print('Syncing trajectories...')
 
     lists = get_multi_airplane_segments(flight_summaries)
-
-    # for l in lists:
-    for l in [lists[12], lists[16], lists[27], lists[32], lists[33]]:
+    lists = [lists[12], lists[16], lists[27], lists[32], lists[33]]
+    
+    for l in lists:
 
         print('Planning for ' + str(len(l)) + ' airplanes...')
         learner_trajs = []

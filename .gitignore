@@ -1,4 +1,5 @@
 models/*
+model/*
 *.pyc
 venv/*
 .idea/*

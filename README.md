@@ -48,4 +48,4 @@ To modify experiment parameters, change `cfg/params.cfg` and retrain the model.
 
 ## License
 
-This project is released under the MIT License.
+This project is released under the MIT License. Please review the [License file](LICENSE) for more details.

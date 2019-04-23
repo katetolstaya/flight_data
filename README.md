@@ -45,3 +45,7 @@ To modify experiment parameters, change `cfg/params.cfg` and retrain the model.
 3) Take-offs 
 4) Prune high cost trajectories (as if high cost regions are fake obstacles)
 5) Refine splines by adding control points sampled using a Variational Autoencoder ( won't generalize to landing vs takeoff)
+
+## License
+
+This project is released under the MIT License.
